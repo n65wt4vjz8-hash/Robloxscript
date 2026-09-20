@@ -126,8 +126,9 @@ end)
 closeBtn.MouseButton1Click:Connect(function()
     gui:Destroy()
 end)
-local moveDir=Vector3.zero
-local function makeArrow(text,pos,dirFunc)
+local horizontalDir=Vector3.zero
+local verticalDir=Vector3.zero
+local function makeArrow(text,pos,dirFunc,vertical)
     local b=Instance.new("TextButton")
     b.Size=UDim2.new(0,50,0,50)
     b.Position=pos
@@ -140,16 +141,22 @@ local function makeArrow(text,pos,dirFunc)
     local c=Instance.new("UICorner")
     c.CornerRadius=UDim.new(0,8)
     c.Parent=b
-    b.MouseButton1Down:Connect(function() moveDir=dirFunc() end)
-    b.MouseButton1Up:Connect(function() moveDir=Vector3.zero end)
-    b.MouseLeave:Connect(function() moveDir=Vector3.zero end)
+    b.MouseButton1Down:Connect(function()
+        if vertical then verticalDir=dirFunc() else horizontalDir=dirFunc() end
+    end)
+    b.MouseButton1Up:Connect(function()
+        if vertical then verticalDir=Vector3.zero else horizontalDir=Vector3.zero end
+    end)
+    b.MouseLeave:Connect(function()
+        if vertical then verticalDir=Vector3.zero else horizontalDir=Vector3.zero end
+    end)
 end
-makeArrow("↑",UDim2.new(0.05,55,0.75,0),function() return Vector3.new(0,0,-1) end)
-makeArrow("↓",UDim2.new(0.05,55,0.75,110),function() return Vector3.new(0,0,1) end)
-makeArrow("←",UDim2.new(0.05,0,0.75,55),function() return Vector3.new(-1,0,0) end)
-makeArrow("→",UDim2.new(0.05,110,0.75,55),function() return Vector3.new(1,0,0) end)
-makeArrow("▲",UDim2.new(0.85,0,0.75,0),function() return Vector3.new(0,1,0) end)
-makeArrow("▼",UDim2.new(0.85,0,0.75,110),function() return Vector3.new(0,-1,0) end)
+makeArrow("↑",UDim2.new(0.05,55,0.75,0),function() return Vector3.new(0,0,-1) end,false)
+makeArrow("↓",UDim2.new(0.05,55,0.75,110),function() return Vector3.new(0,0,1) end,false)
+makeArrow("←",UDim2.new(0.05,0,0.75,55),function() return Vector3.new(-1,0,0) end,false)
+makeArrow("→",UDim2.new(0.05,110,0.75,55),function() return Vector3.new(1,0,0) end,false)
+makeArrow("▲",UDim2.new(0.85,0,0.75,0),function() return Vector3.new(0,1,0) end,true)
+makeArrow("▼",UDim2.new(0.85,0,0.75,110),function() return Vector3.new(0,-1,0) end,true)
 local flying=false
 local speed=1
 local conn
@@ -160,6 +167,11 @@ local function startFly()
     local hrp=char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
     flying=true
+    local hum=char:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.WalkSpeed=0
+        hum.JumpPower=0
+    end
     conn=RS.RenderStepped:Connect(function()
         if not flying then return end
         local c=player.Character
@@ -174,7 +186,8 @@ local function startFly()
         if UIS:IsKeyDown(Enum.KeyCode.D) then dir+=cam.CFrame.RightVector end
         if UIS:IsKeyDown(Enum.KeyCode.Space) then dir+=Vector3.new(0,1,0) end
         if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir-=Vector3.new(0,1,0) end
-        if moveDir.Magnitude>0 then dir+=cam.CFrame:VectorToWorldSpace(moveDir) end
+        if horizontalDir.Magnitude>0 then dir+=cam.CFrame:VectorToWorldSpace(horizontalDir) end
+        if verticalDir.Magnitude>0 then dir+=verticalDir end
         if dir.Magnitude>0 then
             h.CFrame=h.CFrame+dir.Unit*speed
         end
@@ -186,6 +199,13 @@ local function stopFly()
     if not flying then return end
     flying=false
     if conn then conn:Disconnect() conn=nil end
+    local char=player.Character
+    local hum=char and char:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.WalkSpeed=16
+        hum.JumpPower=50
+        hum.UseJumpPower=true
+    end
     btn.Text="Fly: OFF"
     btn.BackgroundColor3=Color3.fromRGB(60,60,70)
 end
