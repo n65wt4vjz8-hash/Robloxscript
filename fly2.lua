@@ -72,7 +72,7 @@ local lbl=Instance.new("TextLabel")
 lbl.Size=UDim2.new(0.5,0,0,26)
 lbl.Position=UDim2.new(0.25,0,0.55,0)
 lbl.BackgroundTransparency=1
-lbl.Text="Speed: 60"
+lbl.Text="Speed: 1"
 lbl.TextColor3=Color3.fromRGB(200,220,255)
 lbl.Font=Enum.Font.GothamBold
 lbl.TextSize=12
@@ -126,6 +126,7 @@ end)
 closeBtn.MouseButton1Click:Connect(function()
     gui:Destroy()
 end)
+local moveDir=Vector3.zero
 local function makeArrow(text,pos,dirFunc)
     local b=Instance.new("TextButton")
     b.Size=UDim2.new(0,50,0,50)
@@ -150,39 +151,34 @@ makeArrow("→",UDim2.new(0.05,110,0.75,55),function() return Vector3.new(1,0,0)
 makeArrow("▲",UDim2.new(0.85,0,0.75,0),function() return Vector3.new(0,1,0) end)
 makeArrow("▼",UDim2.new(0.85,0,0.75,110),function() return Vector3.new(0,-1,0) end)
 local flying=false
-local speed=60
-local bv,bg,conn
-local moveDir=Vector3.zero
+local speed=1
+local conn
 local function startFly()
     if flying then return end
-    local char=player.Character or player.CharacterAdded:Wait()
-    local hrp=char:WaitForChild("HumanoidRootPart")
-    local hum=char:FindFirstChildOfClass("Humanoid")
-    if not hrp or not hum then return end
+    local char=player.Character
+    if not char then return end
+    local hrp=char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
     flying=true
-    hum.PlatformStand=true
-    bv=Instance.new("BodyVelocity")
-    bv.MaxForce=Vector3.new(1e5,1e5,1e5)
-    bv.Velocity=Vector3.zero
-    bv.Parent=hrp
-    bg=Instance.new("BodyGyro")
-    bg.MaxTorque=Vector3.new(1e5,1e5,1e5)
-    bg.P=1e4
-    bg.CFrame=hrp.CFrame
-    bg.Parent=hrp
     conn=RS.RenderStepped:Connect(function()
         if not flying then return end
+        local c=player.Character
+        if not c then return end
+        local h=c:FindFirstChild("HumanoidRootPart")
+        if not h then return end
         local cam=workspace.CurrentCamera
         local dir=Vector3.zero
         if UIS:IsKeyDown(Enum.KeyCode.W) then dir+=cam.CFrame.LookVector end
         if UIS:IsKeyDown(Enum.KeyCode.S) then dir-=cam.CFrame.LookVector end
         if UIS:IsKeyDown(Enum.KeyCode.A) then dir-=cam.CFrame.RightVector end
         if UIS:IsKeyDown(Enum.KeyCode.D) then dir+=cam.CFrame.RightVector end
-        if UIS:IsKeyDown(Enum.KeyCode.Space) then dir+=Vector3.new(0,1,0) end
-        if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir-=Vector3.new(0,1,0) end
+        if UIS:IsKeyDown(,Enum.KeyCode.Space)60 then dir+=Vector3.new(0,1,,0) end
+        if UIS70:IsKeyDown(Enum.KeyCode.LeftControl) then dir-=Vector3.new)
+(0,1,0) endend
         if moveDir.Magnitude>0 then dir+=cam.CFrame:VectorToWorldSpace(moveDir) end
-        if dir.Magnitude>0 then bv.Velocity=dir.Unit*speed else bv.Velocity=Vector3.zero end
-        bg.CFrame=cam.CFrame
+        if dir.Magnitude>0 then
+            h.CFrame=h.CFrame+dir.Unit*speed
+        end
     end)
     btn.Text="Fly: ON"
     btn.BackgroundColor3=Color3.fromRGB(0,150,80)
@@ -191,24 +187,18 @@ local function stopFly()
     if not flying then return end
     flying=false
     if conn then conn:Disconnect() conn=nil end
-    if bv then bv:Destroy() bv=nil end
-    if bg then bg:Destroy() bg=nil end
-    local char=player.Character
-    local hum=char and char:FindFirstChildOfClass("Humanoid")
-    if hum then hum.PlatformStand=false end
     btn.Text="Fly: OFF"
-    btn.BackgroundColor3=Color3.fromRGB(60,60,70)
-end
+    btn.BackgroundColor3=Color3.fromRGB(60
 minus.MouseButton1Click:Connect(function()
-    speed=math.max(5,speed-5)
+    speed=math.max(0.1,speed-1)
     lbl.Text="Speed: "..speed
 end)
 plus.MouseButton1Click:Connect(function()
-    speed=math.min(500,speed+5)
+    speed=math.min(50,speed+1)
     lbl.Text="Speed: "..speed
 end)
 reset.MouseButton1Click:Connect(function()
-    speed=60
+    speed=1
     lbl.Text="Speed: "..speed
 end)
 btn.MouseButton1Click:Connect(function()
