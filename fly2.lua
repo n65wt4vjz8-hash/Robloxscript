@@ -172,9 +172,8 @@ local function startFly()
         if UIS:IsKeyDown(Enum.KeyCode.S) then dir-=cam.CFrame.LookVector end
         if UIS:IsKeyDown(Enum.KeyCode.A) then dir-=cam.CFrame.RightVector end
         if UIS:IsKeyDown(Enum.KeyCode.D) then dir+=cam.CFrame.RightVector end
-        if UIS:IsKeyDown(,Enum.KeyCode.Space)60 then dir+=Vector3.new(0,1,,0) end
-        if UIS70:IsKeyDown(Enum.KeyCode.LeftControl) then dir-=Vector3.new)
-(0,1,0) endend
+        if UIS:IsKeyDown(Enum.KeyCode.Space) then dir+=Vector3.new(0,1,0) end
+        if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir-=Vector3.new(0,1,0) end
         if moveDir.Magnitude>0 then dir+=cam.CFrame:VectorToWorldSpace(moveDir) end
         if dir.Magnitude>0 then
             h.CFrame=h.CFrame+dir.Unit*speed
@@ -188,7 +187,8 @@ local function stopFly()
     flying=false
     if conn then conn:Disconnect() conn=nil end
     btn.Text="Fly: OFF"
-    btn.BackgroundColor3=Color3.fromRGB(60
+    btn.BackgroundColor3=Color3.fromRGB(60,60,70)
+end
 minus.MouseButton1Click:Connect(function()
     speed=math.max(0.1,speed-1)
     lbl.Text="Speed: "..speed
