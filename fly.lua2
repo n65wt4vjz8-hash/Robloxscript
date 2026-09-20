@@ -1,0 +1,12 @@
+
+local player=game.Players.LocalPlayer
+local UIS=game:GetService("UserInputService")
+local RS=game:GetService("RunService")
+local CG=game:GetService("CoreGui")
+local flying=false
+local speed=60
+local bv,bg,conn
+local moveDir=Vector3.zero
+local gui=Instance.new("ScreenGui")
+gui.Name="DeltaFly"
+gui.ResetOnSpawn=false
