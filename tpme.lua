@@ -135,11 +135,11 @@ btn.MouseButton1Click:Connect(function()
     end
 end)
 minus.MouseButton1Click:Connect(function()
-    power=math.max(5,power-5)
+    power=math.max(1,power-1)
     lbl.Text="Power: "..power
 end)
 plus.MouseButton1Click:Connect(function()
-    power=math.min(200,power+5)
+    power=math.min(200,power+1)
     lbl.Text="Power: "..power
 end)
 reset.MouseButton1Click:Connect(function()
