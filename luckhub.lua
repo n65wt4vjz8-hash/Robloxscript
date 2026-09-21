@@ -117,7 +117,7 @@ local function openHub()
     keyFrame.Visible=false
     bg.Visible=false
     local hubFrame=Instance.new("Frame")
-    hubFrame.Size=UDim2.new(0,240,0,320)
+    hubFrame.Size=UDim2.new(0,240,0,340)
     hubFrame.Position=UDim2.new(0.05,0,0.3,0)
     hubFrame.BackgroundColor3=Color3.fromRGB(15,15,25)
     hubFrame.BorderSizePixel=0
@@ -174,51 +174,46 @@ local function openHub()
     local cbc=Instance.new("UICorner")
     cbc.CornerRadius=UDim.new(0,5)
     cbc.Parent=closeBtn
+    local list=Instance.new("ScrollingFrame")
+    list.Size=UDim2.new(0.9,0,0,290)
+    list.Position=UDim2.new(0.05,0,0.1,0)
+    list.BackgroundTransparency=1
+    list.BorderSizePixel=0
+    list.ScrollBarThickness=4
+    list.CanvasSize=UDim2.new(0,0,0,0)
+    list.AutomaticCanvasSize=Enum.AutomaticSize.Y
+    list.Parent=hubFrame
+    local layout=Instance.new("UIListLayout")
+    layout.Padding=UDim.new(0,6)
+    layout.SortOrder=Enum.SortOrder.LayoutOrder
+    layout.Parent=list
     local minimized=false
-    local normalSize=UDim2.new(0,240,0,320)
+    local normalSize=UDim2.new(0,240,0,340)
     local miniSize=UDim2.new(0,140,0,60)
     minBtn.MouseButton1Click:Connect(function()
         minimized=not minimized
         if minimized then
             hubFrame.Size=miniSize
-            for _,v in ipairs(hubFrame:GetChildren()) do
-                if v~=hTitle and v.Name~="hStroke" then
-                    v.Visible=false
-                end
-            end
-            hTitle.Text="LUCK HUB"
-            hTitle.TextSize=16
+            list.Visible=false
             minBtn.Text="＋"
         else
             hubFrame.Size=normalSize
-            for _,v in ipairs(hubFrame:GetChildren()) do
-                if v~=hTitle and v.Name~="hStroke" then
-                    v.Visible=true
-                end
-            end
-            hTitle.Text="LUCK HUB"
-            hTitle.TextSize=14
+            list.Visible=true
             minBtn.Text="−"
         end
     end)
     closeBtn.MouseButton1Click:Connect(function()
         gui:Destroy()
     end)
-    local content=Instance.new("Frame")
-    content.Size=UDim2.new(0.9,0,0,260)
-    content.Position=UDim2.new(0.05,0,0.1,0)
-    content.BackgroundTransparency=1
-    content.Parent=hubFrame
-    local function makeBtn(text,y,callback)
+    local function makeBtn(text,callback)
         local b=Instance.new("TextButton")
-        b.Size=UDim2.new(1,0,0,30)
-        b.Position=UDim2.new(0,0,y,0)
+        b.Size=UDim2.new(1,0,0,32)
         b.BackgroundColor3=Color3.fromRGB(35,35,55)
         b.Text=text
         b.TextColor3=Color3.fromRGB(255,255,255)
         b.Font=Enum.Font.GothamBold
         b.TextSize=12
-        b.Parent=content
+        b.Parent=list
         local c=Instance.new("UICorner")
         c.CornerRadius=UDim.new(0,6)
         c.Parent=b
@@ -237,12 +232,30 @@ local function openHub()
         b.MouseButton1Click:Connect(callback)
         return b
     end
-    makeBtn("Fly",0,function() end)
-    makeBtn("Tap TP",40,function() end)
-    makeBtn("Player Cam",80,function() end)
-    makeBtn("Aimbot",120,function() end)
-    makeBtn("ESP",160,function() end)
-    makeBtn("Spin",200,function() end)
+    makeBtn("Fly",function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/n65wt4vjz8-hash/Robloxscript/main/fly3.lua?t=" .. tick()))()
+    end)
+    makeBtn("Tap TP",function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/n65wt4vjz8-hash/Robloxscript/main/tap_tp.lua?t=" .. tick()))()
+    end)
+    makeBtn("Player Cam",function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/n65wt4vjz8-hash/Robloxscript/main/player_cam.lua?t=" .. tick()))()
+    end)
+    makeBtn("Aimbot",function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/n65wt4vjz8-hash/Robloxscript/main/Aimbot.lua?t=" .. tick()))()
+    end)
+    makeBtn("ESP",function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/n65wt4vjz8-hash/Robloxscript/main/ESP.lua?t=" .. tick()))()
+    end)
+    makeBtn("Spin",function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/n65wt4vjz8-hash/Robloxscript/main/spin.lua?t=" .. tick()))()
+    end)
+    makeBtn("TP Me",function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/n65wt4vjz8-hash/Robloxscript/main/tpme.lua?t=" .. tick()))()
+    end)
+    makeBtn("Player TP",function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/n65wt4vjz8-hash/Robloxscript/main/ptp.lua?t=" .. tick()))()
+    end)
 end
 kBtn.MouseButton1Click:Connect(function()
     if kBox.Text==KEY then
