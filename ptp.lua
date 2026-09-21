@@ -1,115 +1,131 @@
+local KEY="Clover"
+local SCRIPT_URL="https://raw.githubusercontent.com/n65wt4vjz8-hash/Robloxscript/main/ptp.lua?t="
 local player=game.Players.LocalPlayer
 local CG=game:GetService("CoreGui")
 local gui=Instance.new("ScreenGui")
-gui.Name="DeltaPTP"
+gui.Name="LuckHubKey"
 gui.ResetOnSpawn=false
+gui.IgnoreGuiInset=true
 pcall(function() gui.Parent=CG end)
 if not gui.Parent then gui.Parent=player:WaitForChild("PlayerGui") end
-local frame=Instance.new("Frame")
-frame.Size=UDim2.new(0,100,0,120)
-frame.Position=UDim2.new(0.05,0,0.3,0)
-frame.BackgroundColor3=Color3.fromRGB(20,20,25)
-frame.BorderSizePixel=0
-frame.Active=true
-frame.Draggable=true
-frame.Parent=gui
-local fc=Instance.new("UICorner")
-fc.CornerRadius=UDim.new(0,6)
-fc.Parent=frame
-local title=Instance.new("TextLabel")
-title.Size=UDim2.new(1,0,0,18)
-title.BackgroundColor3=Color3.fromRGB(35,35,45)
-title.BorderSizePixel=0
-title.Text="Player TP"
-title.TextColor3=Color3.fromRGB(255,255,255)
-title.Font=Enum.Font.GothamBold
-title.TextSize=9
-title.Parent=frame
-local tc=Instance.new("UICorner")
-tc.CornerRadius=UDim.new(0,6)
-tc.Parent=title
-local closeBtn=Instance.new("TextButton")
-closeBtn.Size=UDim2.new(0,16,0,16)
-closeBtn.Position=UDim2.new(1,-18,0,1)
-closeBtn.BackgroundColor3=Color3.fromRGB(180,50,50)
-closeBtn.Text="×"
-closeBtn.TextColor3=Color3.fromRGB(255,255,255)
-closeBtn.Font=Enum.Font.GothamBold
-closeBtn.TextSize=11
-closeBtn.Parent=title
-local cc=Instance.new("UICorner")
-cc.CornerRadius=UDim.new(0,4)
-cc.Parent=closeBtn
-closeBtn.MouseButton1Click:Connect(function()
-    gui:Destroy()
+local bg=Instance.new("Frame")
+bg.Size=UDim2.new(1,0,1,0)
+bg.BackgroundColor3=Color3.fromRGB(0,0,0)
+bg.BackgroundTransparency=0.5
+bg.BorderSizePixel=0
+bg.Parent=gui
+local keyFrame=Instance.new("Frame")
+keyFrame.Size=UDim2.new(0,300,0,200)
+keyFrame.Position=UDim2.new(0.5,-150,0.5,-100)
+keyFrame.BackgroundColor3=Color3.fromRGB(15,15,25)
+keyFrame.BorderSizePixel=0
+keyFrame.Parent=gui
+local kfc=Instance.new("UICorner")
+kfc.CornerRadius=UDim.new(0,16)
+kfc.Parent=keyFrame
+local kStroke=Instance.new("UIStroke")
+kStroke.Color=Color3.fromRGB(120,80,255)
+kStroke.Thickness=2
+kStroke.Parent=keyFrame
+local kGrad=Instance.new("UIGradient")
+kGrad.Color=ColorSequence.new({
+    ColorSequenceKeypoint.new(0,Color3.fromRGB(120,80,255)),
+    ColorSequenceKeypoint.new(1,Color3.fromRGB(0,180,255))
+})
+kGrad.Rotation=45
+kGrad.Parent=kStroke
+local kTitle=Instance.new("TextLabel")
+kTitle.Size=UDim2.new(1,0,0,40)
+kTitle.Position=UDim2.new(0,0,0,15)
+kTitle.BackgroundTransparency=1
+kTitle.Text="LUCK HUB"
+kTitle.TextColor3=Color3.fromRGB(255,255,255)
+kTitle.Font=Enum.Font.GothamBlack
+kTitle.TextSize=28
+kTitle.Parent=keyFrame
+local kTitleGrad=Instance.new("UIGradient")
+kTitleGrad.Color=ColorSequence.new({
+    ColorSequenceKeypoint.new(0,Color3.fromRGB(180,120,255)),
+    ColorSequenceKeypoint.new(1,Color3.fromRGB(80,200,255))
+})
+kTitleGrad.Parent=kTitle
+local kSub=Instance.new("TextLabel")
+kSub.Size=UDim2.new(1,0,0,16)
+kSub.Position=UDim2.new(0,0,0,52)
+kSub.BackgroundTransparency=1
+kSub.Text="KEY SYSTEM"
+kSub.TextColor3=Color3.fromRGB(150,150,180)
+kSub.Font=Enum.Font.GothamBold
+kSub.TextSize=10
+kSub.Parent=keyFrame
+local kBox=Instance.new("TextBox")
+kBox.Size=UDim2.new(0.8,0,0,40)
+kBox.Position=UDim2.new(0.1,0,0.42,0)
+kBox.BackgroundColor3=Color3.fromRGB(25,25,40)
+kBox.BorderSizePixel=0
+kBox.PlaceholderText="Enter Key..."
+kBox.Text=""
+kBox.TextColor3=Color3.fromRGB(255,255,255)
+kBox.PlaceholderColor3=Color3.fromRGB(100,100,130)
+kBox.Font=Enum.Font.GothamBold
+kBox.TextSize=14
+kBox.ClearTextOnFocus=false
+kBox.Parent=keyFrame
+local kbc=Instance.new("UICorner")
+kbc.CornerRadius=UDim.new(0,10)
+kbc.Parent=kBox
+local kBoxStroke=Instance.new("UIStroke")
+kBoxStroke.Color=Color3.fromRGB(80,80,120)
+kBoxStroke.Thickness=1.5
+kBoxStroke.Parent=kBox
+kBox.Focused:Connect(function()
+    kBoxStroke.Color=Color3.fromRGB(120,80,255)
+    kBoxStroke.Thickness=2
 end)
-local list=Instance.new("ScrollingFrame")
-list.Size=UDim2.new(0.9,0,0,90)
-list.Position=UDim2.new(0.05,0,0.17,0)
-list.BackgroundColor3=Color3.fromRGB(15,15,20)
-list.BorderSizePixel=0
-list.ScrollBarThickness=2
-list.CanvasSize=UDim2.new(0,0,0,0)
-list.AutomaticCanvasSize=Enum.AutomaticSize.Y
-list.Parent=frame
-local lc=Instance.new("UICorner")
-lc.CornerRadius=UDim.new(0,4)
-lc.Parent=list
-local layout=Instance.new("UIListLayout")
-layout.Padding=UDim.new(0,2)
-layout.SortOrder=Enum.SortOrder.LayoutOrder
-layout.Parent=list
-local padding=Instance.new("UIPadding")
-padding.PaddingTop=UDim.new(0,2)
-padding.PaddingLeft=UDim.new(0,2)
-padding.PaddingRight=UDim.new(0,2)
-padding.Parent=list
-local function makePlayerBtn(pl)
-    local b=Instance.new("TextButton")
-    b.Size=UDim2.new(1,-4,0,18)
-    b.BackgroundColor3=Color3.fromRGB(45,45,60)
-    b.Text=pl.Name
-    b.TextColor3=Color3.fromRGB(255,255,255)
-    b.Font=Enum.Font.GothamBold
-    b.TextSize=8
-    b.Parent=list
-    local c=Instance.new("UICorner")
-    c.CornerRadius=UDim.new(0,4)
-    c.Parent=b
-    b.MouseButton1Click:Connect(function()
-        local char=pl.Character
-        if not char then
-            b.Text="No Char"
-            task.wait(1)
-            b.Text=pl.Name
-            return
-        end
-        local hrp=char:FindFirstChild("HumanoidRootPart")
-        if not hrp then return end
-        local myChar=player.Character
-        local myHrp=myChar and myChar:FindFirstChild("HumanoidRootPart")
-        if not myHrp then return end
-        myHrp.CFrame=hrp.CFrame
-        b.BackgroundColor3=Color3.fromRGB(0,150,80)
-        task.wait(0.5)
-        b.BackgroundColor3=Color3.fromRGB(45,45,60)
-    end)
-    return b
-end
-local buttons={}
-for _,pl in ipairs(game.Players:GetPlayers()) do
-    if pl~=player then
-        buttons[pl]=makePlayerBtn(pl)
-    end
-end
-game.Players.PlayerAdded:Connect(function(pl)
-    if pl~=player then
-        buttons[pl]=makePlayerBtn(pl)
+kBox.FocusLost:Connect(function()
+    kBoxStroke.Color=Color3.fromRGB(80,80,120)
+    kBoxStroke.Thickness=1.5
+end)
+local kBtn=Instance.new("TextButton")
+kBtn.Size=UDim2.new(0.8,0,0,38)
+kBtn.Position=UDim2.new(0.1,0,0.72,0)
+kBtn.BackgroundColor3=Color3.fromRGB(120,80,255)
+kBtn.Text="VERIFY"
+kBtn.TextColor3=Color3.fromRGB(255,255,255)
+kBtn.Font=Enum.Font.GothamBold
+kBtn.TextSize=15
+kBtn.Parent=keyFrame
+local kbtc=Instance.new("UICorner")
+kbtc.CornerRadius=UDim.new(0,10)
+kbtc.Parent=kBtn
+local kBtnGrad=Instance.new("UIGradient")
+kBtnGrad.Color=ColorSequence.new({
+    ColorSequenceKeypoint.new(0,Color3.fromRGB(140,90,255)),
+    ColorSequenceKeypoint.new(1,Color3.fromRGB(80,160,255))
+})
+kBtnGrad.Parent=kBtn
+local kStatus=Instance.new("TextLabel")
+kStatus.Size=UDim2.new(1,0,0,16)
+kStatus.Position=UDim2.new(0,0,1,-20)
+kStatus.BackgroundTransparency=1
+kStatus.Text=""
+kStatus.TextColor3=Color3.fromRGB(255,100,100)
+kStatus.Font=Enum.Font.GothamBold
+kStatus.TextSize=11
+kStatus.Parent=keyFrame
+kBtn.MouseButton1Click:Connect(function()
+    if kBox.Text==KEY then
+        kStatus.Text="SUCCESS"
+        kStatus.TextColor3=Color3.fromRGB(0,220,120)
+        task.wait(0.6)
+        gui:Destroy()
+        loadstring(game:HttpGet(SCRIPT_URL..tick()))()
+    else
+        kStatus.Text="INVALID KEY"
+        kStatus.TextColor3=Color3.fromRGB(255,80,80)
+        kBox.Text=""
     end
 end)
-game.Players.PlayerRemoving:Connect(function(pl)
-    if buttons[pl] then
-        buttons[pl]:Destroy()
-        buttons[pl]=nil
-    end
+kBox.FocusLost:Connect(function(enter)
+    if enter then kBtn.MouseButton1Click:Fire() end
 end)
