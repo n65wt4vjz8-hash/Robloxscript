@@ -1,5 +1,5 @@
 local player=game.Players.LocalPlayer
-local UIS=game:GetService("UserInputService")
+local RS=game:GetService("RunService")
 local CG=game:GetService("CoreGui")
 local gui=Instance.new("ScreenGui")
 gui.Name="DeltaHold"
@@ -36,35 +36,28 @@ local function removeHeld(part)
         end
     end
 end
-UIS.InputBegan:Connect(function(input,gp)
-    if gp then return end
-    if input.UserInputType~=Enum.UserInputType.Touch then return end
-    local pos=input.Position
-    local ray=workspace.CurrentCamera:ViewportPointToRay(pos.X,pos.Y)
-    local params=RaycastParams.new()
-    params.FilterDescendantsInstances={player.Character}
-    params.FilterType=Enum.RaycastFilterType.Exclude
-    local result=workspace:Raycast(ray.Origin,ray.Direction*500,params)
-    if result and result.Instance and isHeld(result.Instance) then
-        result.Instance.Anchored=false
-        removeHeld(result.Instance)
-    end
-end)
-task.spawn(function()
-    while true do
-        if enabled then
-            for _,obj in ipairs(workspace:GetChildren()) do
-                if obj.Name=="GrabParts" or obj.Name:lower():find("grab") then
-                    for _,part in ipairs(obj:GetDescendants()) do
-                        if part:IsA("BasePart") and not part.Anchored and not isHeld(part) then
-                            part.Anchored=true
-                            table.insert(heldParts,part)
-                        end
-                    end
+local function scanGrabParts()
+    for _,obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and obj.Name~=nil then
+            local parent=obj.Parent
+            if parent and (parent.Name:lower():find("grab") or parent.Name:lower():find("hold") or parent.Name:lower():find("carry") or parent.Name:lower():find("blob")) then
+                if not isHeld(obj) then
+                    obj.Anchored=true
+                    table.insert(heldParts,obj)
                 end
             end
         end
-        task.wait(0.1)
+    end
+end
+RS.Heartbeat:Connect(function()
+    if not enabled then return end
+    scanGrabParts()
+    for _,part in ipairs(heldParts) do
+        if part and part.Parent then
+            if not part.Anchored then
+                part.Anchored=true
+            end
+        end
     end
 end)
 btn.MouseButton1Click:Connect(function()
