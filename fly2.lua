@@ -1,229 +1,202 @@
+local KEY="Luck"
+local SCRIPT_URL="https://raw.githubusercontent.com/n65wt4vjz8-hash/Robloxscript/main/strafe.lua?t="
 local player=game.Players.LocalPlayer
-local UIS=game:GetService("UserInputService")
 local RS=game:GetService("RunService")
 local CG=game:GetService("CoreGui")
 local gui=Instance.new("ScreenGui")
-gui.Name="DeltaFly"
+gui.Name="LuckHubKey"
 gui.ResetOnSpawn=false
+gui.IgnoreGuiInset=true
 pcall(function() gui.Parent=CG end)
 if not gui.Parent then gui.Parent=player:WaitForChild("PlayerGui") end
-local frame=Instance.new("Frame")
-frame.Size=UDim2.new(0,180,0,130)
-frame.Position=UDim2.new(0.05,0,0.3,0)
-frame.BackgroundColor3=Color3.fromRGB(20,20,25)
-frame.BorderSizePixel=0
-frame.Active=true
-frame.Draggable=true
-frame.Parent=gui
-local fc=Instance.new("UICorner")
-fc.CornerRadius=UDim.new(0,10)
-fc.Parent=frame
-local normalSize=UDim2.new(0,180,0,130)
-local minimized=false
+local bg=Instance.new("Frame")
+bg.Size=UDim2.new(1,0,1,0)
+bg.BackgroundColor3=Color3.fromRGB(0,0,0)
+bg.BackgroundTransparency=0.5
+bg.BorderSizePixel=0
+bg.Parent=gui
+local container=Instance.new("Frame")
+container.Size=UDim2.new(0,360,0,420)
+container.Position=UDim2.new(0.5,-180,0.5,-210)
+container.BackgroundTransparency=1
+container.Parent=gui
 local title=Instance.new("TextLabel")
-title.Size=UDim2.new(1,0,0,26)
-title.BackgroundColor3=Color3.fromRGB(35,35,45)
-title.BorderSizePixel=0
-title.Text="Fly"
+title.Size=UDim2.new(1,0,0,40)
+title.Position=UDim2.new(0,0,0,0)
+title.BackgroundTransparency=1
+title.Text="LUCK HUB"
 title.TextColor3=Color3.fromRGB(255,255,255)
-title.Font=Enum.Font.GothamBold
-title.TextSize=14
-title.Parent=frame
-local tc=Instance.new("UICorner")
-tc.CornerRadius=UDim.new(0,10)
-tc.Parent=title
-local minBtn=Instance.new("TextButton")
-minBtn.Size=UDim2.new(0,24,0,24)
-minBtn.Position=UDim2.new(1,-56,0,1)
-minBtn.BackgroundColor3=Color3.fromRGB(80,80,100)
-minBtn.Text="−"
-minBtn.TextColor3=Color3.fromRGB(255,255,255)
-minBtn.Font=Enum.Font.GothamBold
-minBtn.TextSize=16
-minBtn.Parent=title
-local mc2=Instance.new("UICorner")
-mc2.CornerRadius=UDim.new(0,6)
-mc2.Parent=minBtn
-local closeBtn=Instance.new("TextButton")
-closeBtn.Size=UDim2.new(0,24,0,24)
-closeBtn.Position=UDim2.new(1,-28,0,1)
-closeBtn.BackgroundColor3=Color3.fromRGB(180,50,50)
-closeBtn.Text="×"
-closeBtn.TextColor3=Color3.fromRGB(255,255,255)
-closeBtn.Font=Enum.Font.GothamBold
-closeBtn.TextSize=16
-closeBtn.Parent=title
-local cc=Instance.new("UICorner")
-cc.CornerRadius=UDim.new(0,6)
-cc.Parent=closeBtn
-local btn=Instance.new("TextButton")
-btn.Size=UDim2.new(0.9,0,0,32)
-btn.Position=UDim2.new(0.05,0,0.24,0)
-btn.BackgroundColor3=Color3.fromRGB(60,60,70)
-btn.Text="Fly: OFF"
-btn.TextColor3=Color3.fromRGB(255,255,255)
-btn.Font=Enum.Font.GothamBold
-btn.TextSize=14
-btn.Parent=frame
+title.TextStrokeTransparency=0
+title.TextStrokeColor3=Color3.fromRGB(0,0,0)
+title.Font=Enum.Font.GothamBlack
+title.TextSize=32
+title.ZIndex=10
+title.Parent=container
+local yinContainer=Instance.new("Frame")
+yinContainer.Size=UDim2.new(0,300,0,300)
+yinContainer.Position=UDim2.new(0.5,-150,0,90)
+yinContainer.BackgroundTransparency=1
+yinContainer.Parent=container
+local whiteCircle=Instance.new("Frame")
+whiteCircle.Size=UDim2.new(1,0,1,0)
+whiteCircle.BackgroundColor3=Color3.fromRGB(255,255,255)
+whiteCircle.BorderSizePixel=0
+whiteCircle.ZIndex=1
+whiteCircle.Parent=yinContainer
+local wcc=Instance.new("UICorner")
+wcc.CornerRadius=UDim.new(1,0)
+wcc.Parent=whiteCircle
+local stroke=Instance.new("UIStroke")
+stroke.Color=Color3.fromRGB(0,0,0)
+stroke.Thickness=4
+stroke.Parent=whiteCircle
+local blackHalf=Instance.new("Frame")
+blackHalf.Size=UDim2.new(0.5,0,1,0)
+blackHalf.Position=UDim2.new(0.5,0,0,0)
+blackHalf.BackgroundColor3=Color3.fromRGB(0,0,0)
+blackHalf.BorderSizePixel=0
+blackHalf.ZIndex=2
+blackHalf.Parent=yinContainer
+local bhc=Instance.new("UICorner")
+bhc.CornerRadius=UDim.new(0,0)
+bhc.Parent=blackHalf
+local blackTop=Instance.new("Frame")
+blackTop.Size=UDim2.new(0.5,0,0.5,0)
+blackTop.Position=UDim2.new(0.25,0,0,0)
+blackTop.BackgroundColor3=Color3.fromRGB(0,0,0)
+blackTop.BorderSizePixel=0
+blackTop.ZIndex=3
+blackTop.Parent=yinContainer
+local btc=Instance.new("UICorner")
+btc.CornerRadius=UDim.new(1,0)
+btc.Parent=blackTop
+local whiteBottom=Instance.new("Frame")
+whiteBottom.Size=UDim2.new(0.5,0,0.5,0)
+whiteBottom.Position=UDim2.new(0.25,0,0.5,0)
+whiteBottom.BackgroundColor3=Color3.fromRGB(255,255,255)
+whiteBottom.BorderSizePixel=0
+whiteBottom.ZIndex=3
+whiteBottom.Parent=yinContainer
+local wbc=Instance.new("UICorner")
+wbc.CornerRadius=UDim.new(1,0)
+wbc.Parent=whiteBottom
+local blackDot=Instance.new("Frame")
+blackDot.Size=UDim2.new(0,40,0,40)
+blackDot.Position=UDim2.new(0.5,-20,0.25,-20)
+blackDot.BackgroundColor3=Color3.fromRGB(0,0,0)
+blackDot.BorderSizePixel=0
+blackDot.ZIndex=4
+blackDot.Parent=yinContainer
+local bdc=Instance.new("UICorner")
+bdc.CornerRadius=UDim.new(1,0)
+bdc.Parent=blackDot
+local whiteDot=Instance.new("Frame")
+whiteDot.Size=UDim2.new(0,40,0,40)
+whiteDot.Position=UDim2.new(0.5,-20,0.75,-20)
+whiteDot.BackgroundColor3=Color3.fromRGB(255,255,255)
+whiteDot.BorderSizePixel=0
+whiteDot.ZIndex=4
+whiteDot.Parent=yinContainer
+local wdc=Instance.new("UICorner")
+wdc.CornerRadius=UDim.new(1,0)
+wdc.Parent=whiteDot
+local overlay=Instance.new("Frame")
+overlay.Size=UDim2.new(1,0,1,0)
+overlay.BackgroundTransparency=1
+overlay.ZIndex=20
+overlay.Parent=container
+local keyLabel=Instance.new("TextLabel")
+keyLabel.Size=UDim2.new(1,0,0,30)
+keyLabel.Position=UDim2.new(0,0,0.5,-50)
+keyLabel.BackgroundTransparency=1
+keyLabel.Text="「KEY」"
+keyLabel.TextColor3=Color3.fromRGB(255,255,255)
+keyLabel.TextStrokeTransparency=0
+keyLabel.TextStrokeColor3=Color3.fromRGB(0,0,0)
+keyLabel.Font=Enum.Font.GothamBlack
+keyLabel.TextSize=28
+keyLabel.ZIndex=21
+keyLabel.Parent=overlay
+local box=Instance.new("TextBox")
+box.Size=UDim2.new(0.5,0,0,36)
+box.Position=UDim2.new(0.25,0,0.5,-15)
+box.BackgroundColor3=Color3.fromRGB(30,30,30)
+box.BackgroundTransparency=0.2
+box.BorderSizePixel=0
+box.PlaceholderText=""
+box.Text=""
+box.TextColor3=Color3.fromRGB(255,255,255)
+box.Font=Enum.Font.GothamBold
+box.TextSize=16
+box.ZIndex=21
+box.Parent=overlay
 local bc=Instance.new("UICorner")
-bc.CornerRadius=UDim.new(0,6)
-bc.Parent=btn
-local lbl=Instance.new("TextLabel")
-lbl.Size=UDim2.new(0.5,0,0,26)
-lbl.Position=UDim2.new(0.25,0,0.55,0)
-lbl.BackgroundTransparency=1
-lbl.Text="Speed: 1"
-lbl.TextColor3=Color3.fromRGB(200,220,255)
-lbl.Font=Enum.Font.GothamBold
-lbl.TextSize=12
-lbl.Parent=frame
-local minus=Instance.new("TextButton")
-minus.Size=UDim2.new(0.18,0,0,26)
-minus.Position=UDim2.new(0.05,0,0.55,0)
-minus.BackgroundColor3=Color3.fromRGB(70,50,50)
-minus.Text="−"
-minus.TextColor3=Color3.fromRGB(255,255,255)
-minus.Font=Enum.Font.GothamBold
-minus.TextSize=16
-minus.Parent=frame
-local mc=Instance.new("UICorner")
-mc.CornerRadius=UDim.new(0,6)
-mc.Parent=minus
-local plus=Instance.new("TextButton")
-plus.Size=UDim2.new(0.18,0,0,26)
-plus.Position=UDim2.new(0.77,0,0.55,0)
-plus.BackgroundColor3=Color3.fromRGB(50,70,50)
-plus.Text="＋"
-plus.TextColor3=Color3.fromRGB(255,255,255)
-plus.Font=Enum.Font.GothamBold
-plus.TextSize=14
-plus.Parent=frame
-local pc=Instance.new("UICorner")
-pc.CornerRadius=UDim.new(0,6)
-pc.Parent=plus
-local reset=Instance.new("TextButton")
-reset.Size=UDim2.new(0.9,0,0,22)
-reset.Position=UDim2.new(0.05,0,0.78,0)
-reset.BackgroundColor3=Color3.fromRGB(45,45,55)
-reset.Text="Reset"
-reset.TextColor3=Color3.fromRGB(220,220,220)
-reset.Font=Enum.Font.Gotham
-reset.TextSize=11
-reset.Parent=frame
-local rc=Instance.new("UICorner")
-rc.CornerRadius=UDim.new(0,6)
-rc.Parent=reset
-minBtn.MouseButton1Click:Connect(function()
-    minimized=not minimized
-    if minimized then
-        frame.Size=UDim2.new(0,180,0,26)
-        minBtn.Text="＋"
+bc.CornerRadius=UDim.new(0,8)
+bc.Parent=box
+local boxStroke=Instance.new("UIStroke")
+boxStroke.Color=Color3.fromRGB(255,255,255)
+boxStroke.Thickness=2
+boxStroke.Parent=box
+local verify=Instance.new("TextButton")
+verify.Size=UDim2.new(0.7,0,0,42)
+verify.Position=UDim2.new(0.15,0,0.5,40)
+verify.BackgroundColor3=Color3.fromRGB(0,0,0)
+verify.BackgroundTransparency=0.2
+verify.Text="VERIFY"
+verify.TextColor3=Color3.fromRGB(255,255,255)
+verify.TextStrokeTransparency=0
+verify.TextStrokeColor3=Color3.fromRGB(0,0,0)
+verify.Font=Enum.Font.GothamBlack
+verify.TextSize=24
+verify.ZIndex=21
+verify.Parent=overlay
+local vc=Instance.new("UICorner")
+vc.CornerRadius=UDim.new(0,10)
+vc.Parent=verify
+local vStroke=Instance.new("UIStroke")
+vStroke.Color=Color3.fromRGB(255,255,255)
+vStroke.Thickness=2
+vStroke.Parent=verify
+local status=Instance.new("TextLabel")
+status.Size=UDim2.new(1,0,0,24)
+status.Position=UDim2.new(0,0,0.5,90)
+status.BackgroundTransparency=1
+status.Text=""
+status.TextColor3=Color3.fromRGB(255,100,100)
+status.TextStrokeTransparency=0
+status.TextStrokeColor3=Color3.fromRGB(0,0,0)
+status.Font=Enum.Font.GothamBlack
+status.TextSize=16
+status.ZIndex=21
+status.Parent=overlay
+local angle=0
+local conn=RS.RenderStepped:Connect(function(dt)
+    angle=angle+dt*45
+    yinContainer.Rotation=angle
+end)
+gui.Destroying:Connect(function()
+    if conn then conn:Disconnect() end
+end)
+verify.MouseEnter:Connect(function()
+    vStroke.Thickness=3
+end)
+verify.MouseLeave:Connect(function()
+    vStroke.Thickness=2
+end)
+verify.MouseButton1Click:Connect(function()
+    if box.Text==KEY then
+        status.Text="SUCCESS"
+        status.TextColor3=Color3.fromRGB(0,220,120)
+        task.wait(0.6)
+        if conn then conn:Disconnect() end
+        gui:Destroy()
+        loadstring(game:HttpGet(SCRIPT_URL..tick()))()
     else
-        frame.Size=normalSize
-        minBtn.Text="−"
+        status.Text="INVALID KEY"
+        status.TextColor3=Color3.fromRGB(255,80,80)
+        box.Text=""
     end
 end)
-closeBtn.MouseButton1Click:Connect(function()
-    gui:Destroy()
-end)
-local horizontalDir=Vector3.zero
-local verticalDir=Vector3.zero
-local function makeArrow(text,pos,dirFunc,vertical)
-    local b=Instance.new("TextButton")
-    b.Size=UDim2.new(0,50,0,50)
-    b.Position=pos
-    b.BackgroundColor3=Color3.fromRGB(40,40,50)
-    b.Text=text
-    b.TextColor3=Color3.fromRGB(255,255,255)
-    b.Font=Enum.Font.GothamBold
-    b.TextSize=20
-    b.Parent=gui
-    local c=Instance.new("UICorner")
-    c.CornerRadius=UDim.new(0,8)
-    c.Parent=b
-    b.MouseButton1Down:Connect(function()
-        if vertical then verticalDir=dirFunc() else horizontalDir=dirFunc() end
-    end)
-    b.MouseButton1Up:Connect(function()
-        if vertical then verticalDir=Vector3.zero else horizontalDir=Vector3.zero end
-    end)
-    b.MouseLeave:Connect(function()
-        if vertical then verticalDir=Vector3.zero else horizontalDir=Vector3.zero end
-    end)
-end
-makeArrow("↑",UDim2.new(0.05,55,0.75,0),function() return Vector3.new(0,0,-1) end,false)
-makeArrow("↓",UDim2.new(0.05,55,0.75,110),function() return Vector3.new(0,0,1) end,false)
-makeArrow("←",UDim2.new(0.05,0,0.75,55),function() return Vector3.new(-1,0,0) end,false)
-makeArrow("→",UDim2.new(0.05,110,0.75,55),function() return Vector3.new(1,0,0) end,false)
-makeArrow("▲",UDim2.new(0.85,0,0.75,0),function() return Vector3.new(0,1,0) end,true)
-makeArrow("▼",UDim2.new(0.85,0,0.75,110),function() return Vector3.new(0,-1,0) end,true)
-local flying=false
-local speed=1
-local conn
-local function startFly()
-    if flying then return end
-    local char=player.Character
-    if not char then return end
-    local hrp=char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    flying=true
-    local hum=char:FindFirstChildOfClass("Humanoid")
-    if hum then
-        hum.WalkSpeed=0
-        hum.JumpPower=0
-    end
-    conn=RS.RenderStepped:Connect(function()
-        if not flying then return end
-        local c=player.Character
-        if not c then return end
-        local h=c:FindFirstChild("HumanoidRootPart")
-        if not h then return end
-        local cam=workspace.CurrentCamera
-        local dir=Vector3.zero
-        if UIS:IsKeyDown(Enum.KeyCode.W) then dir+=cam.CFrame.LookVector end
-        if UIS:IsKeyDown(Enum.KeyCode.S) then dir-=cam.CFrame.LookVector end
-        if UIS:IsKeyDown(Enum.KeyCode.A) then dir-=cam.CFrame.RightVector end
-        if UIS:IsKeyDown(Enum.KeyCode.D) then dir+=cam.CFrame.RightVector end
-        if UIS:IsKeyDown(Enum.KeyCode.Space) then dir+=Vector3.new(0,1,0) end
-        if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir-=Vector3.new(0,1,0) end
-        if horizontalDir.Magnitude>0 then dir+=cam.CFrame:VectorToWorldSpace(horizontalDir) end
-        if verticalDir.Magnitude>0 then dir+=verticalDir end
-        if dir.Magnitude>0 then
-            h.CFrame=h.CFrame+dir.Unit*speed
-        end
-    end)
-    btn.Text="Fly: ON"
-    btn.BackgroundColor3=Color3.fromRGB(0,150,80)
-end
-local function stopFly()
-    if not flying then return end
-    flying=false
-    if conn then conn:Disconnect() conn=nil end
-    local char=player.Character
-    local hum=char and char:FindFirstChildOfClass("Humanoid")
-    if hum then
-        hum.WalkSpeed=16
-        hum.JumpPower=50
-        hum.UseJumpPower=true
-    end
-    btn.Text="Fly: OFF"
-    btn.BackgroundColor3=Color3.fromRGB(60,60,70)
-end
-minus.MouseButton1Click:Connect(function()
-    speed=math.max(0.1,speed-1)
-    lbl.Text="Speed: "..speed
-end)
-plus.MouseButton1Click:Connect(function()
-    speed=math.min(50,speed+1)
-    lbl.Text="Speed: "..speed
-end)
-reset.MouseButton1Click:Connect(function()
-    speed=1
-    lbl.Text="Speed: "..speed
-end)
-btn.MouseButton1Click:Connect(function()
-    if flying then stopFly() else startFly() end
-end)
-player.CharacterAdded:Connect(function()
-    if flying then stopFly() end
+box.FocusLost:Connect(function(enter)
+    if enter then verify.MouseButton1Click:Fire() end
 end)
