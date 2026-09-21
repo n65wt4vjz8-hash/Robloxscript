@@ -1,26 +1,28 @@
-local KEY="Luck"
-local SCRIPT_URL="https://raw.githubusercontent.com/n65wt4vjz8-hash/Robloxscript/main/Aimbot.lua?t="
 local player=game.Players.LocalPlayer
+local RS=game:GetService("RunService")
 local CG=game:GetService("CoreGui")
+local cam=workspace.CurrentCamera
 local gui=Instance.new("ScreenGui")
-gui.Name="DeltaKey"
+gui.Name="DeltaAimbot"
 gui.ResetOnSpawn=false
 pcall(function() gui.Parent=CG end)
 if not gui.Parent then gui.Parent=player:WaitForChild("PlayerGui") end
 local frame=Instance.new("Frame")
-frame.Size=UDim2.new(0,220,0,130)
-frame.Position=UDim2.new(0.5,-110,0.5,-65)
+frame.Size=UDim2.new(0,200,0,120)
+frame.Position=UDim2.new(0.05,0,0.3,0)
 frame.BackgroundColor3=Color3.fromRGB(20,20,25)
 frame.BorderSizePixel=0
+frame.Active=true
+frame.Draggable=true
 frame.Parent=gui
 local fc=Instance.new("UICorner")
 fc.CornerRadius=UDim.new(0,10)
 fc.Parent=frame
 local title=Instance.new("TextLabel")
-title.Size=UDim2.new(1,0,0,30)
+title.Size=UDim2.new(1,0,0,26)
 title.BackgroundColor3=Color3.fromRGB(35,35,45)
 title.BorderSizePixel=0
-title.Text="Key System"
+title.Text="Aimbot"
 title.TextColor3=Color3.fromRGB(255,255,255)
 title.Font=Enum.Font.GothamBold
 title.TextSize=14
@@ -28,53 +30,87 @@ title.Parent=frame
 local tc=Instance.new("UICorner")
 tc.CornerRadius=UDim.new(0,10)
 tc.Parent=title
-local box=Instance.new("TextBox")
-box.Size=UDim2.new(0.9,0,0,32)
-box.Position=UDim2.new(0.05,0,0.3,0)
-box.BackgroundColor3=Color3.fromRGB(45,45,55)
-box.PlaceholderText="Key..."
-box.Text=""
-box.TextColor3=Color3.fromRGB(255,255,255)
-box.Font=Enum.Font.GothamBold
-box.TextSize=13
-box.ClearTextOnFocus=false
-box.Parent=frame
-local bc=Instance.new("UICorner")
-bc.CornerRadius=UDim.new(0,6)
-bc.Parent=box
-local btn=Instance.new("TextButton")
-btn.Size=UDim2.new(0.9,0,0,32)
-btn.Position=UDim2.new(0.05,0,0.58,0)
-btn.BackgroundColor3=Color3.fromRGB(0,150,80)
-btn.Text="OK"
-btn.TextColor3=Color3.fromRGB(255,255,255)
-btn.Font=Enum.Font.GothamBold
-btn.TextSize=14
-btn.Parent=frame
-local btc=Instance.new("UICorner")
-btc.CornerRadius=UDim.new(0,6)
-btc.Parent=btn
-local status=Instance.new("TextLabel")
-status.Size=UDim2.new(1,0,0,20)
-status.Position=UDim2.new(0,0,0.84,0)
-status.BackgroundTransparency=1
-status.Text=""
-status.TextColor3=Color3.fromRGB(255,100,100)
-status.Font=Enum.Font.GothamBold
-status.TextSize=11
-status.Parent=frame
-btn.MouseButton1Click:Connect(function()
-    if box.Text==KEY then
-        status.Text="OK"
-        status.TextColor3=Color3.fromRGB(0,220,120)
-        task.wait(0.5)
-        gui:Destroy()
-        loadstring(game:HttpGet(SCRIPT_URL..tick()))()
+local closeBtn=Instance.new("TextButton")
+closeBtn.Size=UDim2.new(0,24,0,24)
+closeBtn.Position=UDim2.new(1,-28,0,1)
+closeBtn.BackgroundColor3=Color3.fromRGB(180,50,50)
+closeBtn.Text="×"
+closeBtn.TextColor3=Color3.fromRGB(255,255,255)
+closeBtn.Font=Enum.Font.GothamBold
+closeBtn.TextSize=16
+closeBtn.Parent=title
+local cc=Instance.new("UICorner")
+cc.CornerRadius=UDim.new(0,6)
+cc.Parent=closeBtn
+closeBtn.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+local toggle=Instance.new("TextButton")
+toggle.Size=UDim2.new(0.9,0,0,32)
+toggle.Position=UDim2.new(0.05,0,0.3,0)
+toggle.BackgroundColor3=Color3.fromRGB(60,60,70)
+toggle.Text="OFF"
+toggle.TextColor3=Color3.fromRGB(255,255,255)
+toggle.Font=Enum.Font.GothamBold
+toggle.TextSize=14
+toggle.Parent=frame
+local tc2=Instance.new("UICorner")
+tc2.CornerRadius=UDim.new(0,6)
+tc2.Parent=toggle
+local lbl=Instance.new("TextLabel")
+lbl.Size=UDim2.new(1,0,0,22)
+lbl.Position=UDim2.new(0,0,0.7,0)
+lbl.BackgroundTransparency=1
+lbl.Text="FOV: 200"
+lbl.TextColor3=Color3.fromRGB(200,220,255)
+lbl.Font=Enum.Font.GothamBold
+lbl.TextSize=11
+lbl.Parent=frame
+local enabled=false
+local fov=200
+local conn
+local function getClosest()
+    local closest=nil
+    local shortest=fov
+    local center=Vector2.new(cam.ViewportSize.X/2,cam.ViewportSize.Y/2)
+    for _,p in ipairs(game.Players:GetPlayers()) do
+        if p==player then continue end
+        if not p.Character then continue end
+        local hum=p.Character:FindFirstChildOfClass("Humanoid")
+        if not hum or hum.Health<=0 then continue end
+        local hrp=p.Character:FindFirstChild("HumanoidRootPart")
+        if not hrp then continue end
+        local sp,on=cam:WorldToViewportPoint(hrp.Position)
+        if not on then continue end
+        local d=(Vector2.new(sp.X,sp.Y)-center).Magnitude
+        if d<shortest then
+            shortest=d
+            closest=hrp
+        end
+    end
+    return closest
+end
+toggle.MouseButton1Click:Connect(function()
+    enabled=not enabled
+    if enabled then
+        toggle.Text="ON"
+        toggle.BackgroundColor3=Color3.fromRGB(0,150,80)
+        conn=RS.RenderStepped:Connect(function()
+            if not enabled then return end
+            local t=getClosest()
+            if t then cam.CFrame=CFrame.new(cam.CFrame.Position,t.Position) end
+        end)
     else
-        status.Text="Wrong"
-        box.Text=""
+        toggle.Text="OFF"
+        toggle.BackgroundColor3=Color3.fromRGB(60,60,70)
+        if conn then conn:Disconnect() conn=nil end
     end
 end)
-box.FocusLost:Connect(function(enter)
-    if enter then btn.MouseButton1Click:Fire() end
+player.CharacterAdded:Connect(function()
+    if enabled then
+        enabled=false
+        toggle.Text="OFF"
+        toggle.BackgroundColor3=Color3.fromRGB(60,60,70)
+        if conn then conn:Disconnect() conn=nil end
+    end
 end)
