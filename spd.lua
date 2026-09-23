@@ -7,7 +7,7 @@ gui.ResetOnSpawn=false
 pcall(function() gui.Parent=CG end)
 if not gui.Parent then gui.Parent=player:WaitForChild("PlayerGui") end
 local frame=Instance.new("Frame")
-frame.Size=UDim2.new(0,200,0,110)
+frame.Size=UDim2.new(0,200,0,140)
 frame.Position=UDim2.new(0.05,0,0.4,0)
 frame.BackgroundColor3=Color3.fromRGB(20,20,25)
 frame.BorderSizePixel=0
@@ -44,18 +44,30 @@ cc.Parent=closeBtn
 closeBtn.MouseButton1Click:Connect(function()
     gui:Destroy()
 end)
+local toggleBtn=Instance.new("TextButton")
+toggleBtn.Size=UDim2.new(0.9,0,0,28)
+toggleBtn.Position=UDim2.new(0.05,0,0.2,0)
+toggleBtn.BackgroundColor3=Color3.fromRGB(60,60,70)
+toggleBtn.Text="SPD: OFF"
+toggleBtn.TextColor3=Color3.fromRGB(255,255,255)
+toggleBtn.Font=Enum.Font.GothamBold
+toggleBtn.TextSize=12
+toggleBtn.Parent=frame
+local tbc=Instance.new("UICorner")
+tbc.CornerRadius=UDim.new(0,6)
+tbc.Parent=toggleBtn
 local speedLabel=Instance.new("TextLabel")
-speedLabel.Size=UDim2.new(1,0,0,22)
-speedLabel.Position=UDim2.new(0,0,0.28,0)
+speedLabel.Size=UDim2.new(1,0,0,20)
+speedLabel.Position=UDim2.new(0,0,0.5,0)
 speedLabel.BackgroundTransparency=1
 speedLabel.Text="Speed: 16"
 speedLabel.TextColor3=Color3.fromRGB(200,220,255)
 speedLabel.Font=Enum.Font.GothamBold
-speedLabel.TextSize=13
+speedLabel.TextSize=12
 speedLabel.Parent=frame
 local barBg=Instance.new("Frame")
 barBg.Size=UDim2.new(0.85,0,0,10)
-barBg.Position=UDim2.new(0.075,0,0.55,0)
+barBg.Position=UDim2.new(0.075,0,0.75,0)
 barBg.BackgroundColor3=Color3.fromRGB(40,40,55)
 barBg.BorderSizePixel=0
 barBg.Parent=frame
@@ -63,7 +75,7 @@ local bbc=Instance.new("UICorner")
 bbc.CornerRadius=UDim.new(1,0)
 bbc.Parent=barBg
 local fill=Instance.new("Frame")
-fill.Size=UDim2.new(0,0,1,0)
+fill.Size=UDim2.new(0.03,0,1,0)
 fill.BackgroundColor3=Color3.fromRGB(120,80,255)
 fill.BorderSizePixel=0
 fill.Parent=barBg
@@ -72,7 +84,7 @@ fgc.CornerRadius=UDim.new(1,0)
 fgc.Parent=fill
 local knob=Instance.new("TextButton")
 knob.Size=UDim2.new(0,24,0,24)
-knob.Position=UDim2.new(0,-12,-0.7,0)
+knob.Position=UDim2.new(0.03,-12,-0.7,0)
 knob.BackgroundColor3=Color3.fromRGB(180,150,255)
 knob.Text=""
 knob.AutoButtonColor=false
@@ -84,10 +96,21 @@ local stroke=Instance.new("UIStroke")
 stroke.Color=Color3.fromRGB(255,255,255)
 stroke.Thickness=2
 stroke.Parent=knob
+local enabled=false
 local minSpeed=1
 local maxSpeed=500
 local currentSpeed=16
 local dragging=false
+local function applySpeed()
+    local char=player.Character
+    local hum=char and char:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
+    if enabled then
+        hum.WalkSpeed=currentSpeed
+    else
+        hum.WalkSpeed=16
+    end
+end
 local function updateSpeed(percent)
     percent=math.clamp(percent,0,1)
     local spd=math.floor(minSpeed+(maxSpeed-minSpeed)*percent+0.5)
@@ -95,11 +118,7 @@ local function updateSpeed(percent)
     speedLabel.Text="Speed: "..spd
     fill.Size=UDim2.new(percent,0,1,0)
     knob.Position=UDim2.new(percent,-12,-0.7,0)
-    local char=player.Character
-    local hum=char and char:FindFirstChildOfClass("Humanoid")
-    if hum then
-        hum.WalkSpeed=spd
-    end
+    applySpeed()
 end
 local function getPercentFromX(x)
     local pos=barBg.AbsolutePosition.X
@@ -129,12 +148,19 @@ barBg.InputBegan:Connect(function(input)
         dragging=true
     end
 end)
+toggleBtn.MouseButton1Click:Connect(function()
+    enabled=not enabled
+    if enabled then
+        toggleBtn.Text="SPD: ON"
+        toggleBtn.BackgroundColor3=Color3.fromRGB(0,150,80)
+    else
+        toggleBtn.Text="SPD: OFF"
+        toggleBtn.BackgroundColor3=Color3.fromRGB(60,60,70)
+    end
+    applySpeed()
+end)
 updateSpeed(0.03)
 player.CharacterAdded:Connect(function()
     task.wait(1)
-    local char=player.Character
-    local hum=char and char:FindFirstChildOfClass("Humanoid")
-    if hum then
-        hum.WalkSpeed=currentSpeed
-    end
+    applySpeed()
 end)
