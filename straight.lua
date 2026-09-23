@@ -104,13 +104,19 @@ rbc.Parent=resetBtn
 local enabled=false
 local speed=100
 local thrown={}
+local function isPlayerPart(part)
+    for _,pl in ipairs(game.Players:GetPlayers()) do
+        local char=pl.Character
+        if char and part:IsDescendantOf(char) then return true end
+    end
+    return false
+end
 local function applyToPart(part)
     if not part:IsA("BasePart") then return end
     if part.Anchored then return end
     if thrown[part] then return end
     if part.Velocity.Magnitude<10 then return end
-    local char=player.Character
-    if char and part:IsDescendantOf(char) then return end
+    if isPlayerPart(part) then return end
     thrown[part]=true
     local dir=part.Velocity.Unit
     local bf=Instance.new("BodyForce")
@@ -146,11 +152,11 @@ toggleBtn.MouseButton1Click:Connect(function()
     end
 end)
 minusBtn.MouseButton1Click:Connect(function()
-    speed=math.max(10,speed-10)
+    speed=math.max(100,speed-100)
     speedLabel.Text="Speed: "..speed
 end)
 plusBtn.MouseButton1Click:Connect(function()
-    speed=math.min(1000,speed+10)
+    speed=math.min(2000,speed+100)
     speedLabel.Text="Speed: "..speed
 end)
 resetBtn.MouseButton1Click:Connect(function()
