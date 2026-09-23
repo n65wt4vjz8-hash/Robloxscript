@@ -104,10 +104,25 @@ rbc.Parent=resetBtn
 local enabled=false
 local speed=100
 local thrown={}
-local function isPlayerPart(part)
+local function isExcluded(part)
+    local char=player.Character
+    if char and part:IsDescendantOf(char) then return true end
+    if part.Name=="HumanoidRootPart" then return true end
     for _,pl in ipairs(game.Players:GetPlayers()) do
-        local char=pl.Character
-        if char and part:IsDescendantOf(char) then return true end
+        local c=pl.Character
+        if c and part:IsDescendantOf(c) then return true end
+    end
+    for _,w in ipairs(part:GetChildren()) do
+        if w:IsA("WeldConstraint") then
+            if w.Part0 then
+                local char2=player.Character
+                if char2 and w.Part0:IsDescendantOf(char2) then return true end
+            end
+            if w.Part1 then
+                local char3=player.Character
+                if char3 and w.Part1:IsDescendantOf(char3) then return true end
+            end
+        end
     end
     return false
 end
@@ -116,7 +131,7 @@ local function applyToPart(part)
     if part.Anchored then return end
     if thrown[part] then return end
     if part.Velocity.Magnitude<10 then return end
-    if isPlayerPart(part) then return end
+    if isExcluded(part) then return end
     thrown[part]=true
     local dir=part.Velocity.Unit
     local bf=Instance.new("BodyForce")
