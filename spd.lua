@@ -1,6 +1,5 @@
 local player=game.Players.LocalPlayer
 local CG=game:GetService("CoreGui")
-local UIS=game:GetService("UserInputService")
 local gui=Instance.new("ScreenGui")
 gui.Name="DeltaSpd"
 gui.ResetOnSpawn=false
@@ -57,96 +56,74 @@ local tbc=Instance.new("UICorner")
 tbc.CornerRadius=UDim.new(0,6)
 tbc.Parent=toggleBtn
 local speedLabel=Instance.new("TextLabel")
-speedLabel.Size=UDim2.new(1,0,0,20)
-speedLabel.Position=UDim2.new(0,0,0.5,0)
+speedLabel.Size=UDim2.new(0.5,0,0,28)
+speedLabel.Position=UDim2.new(0.25,0,0.55,0)
 speedLabel.BackgroundTransparency=1
 speedLabel.Text="Speed: 16"
 speedLabel.TextColor3=Color3.fromRGB(200,220,255)
 speedLabel.Font=Enum.Font.GothamBold
 speedLabel.TextSize=12
 speedLabel.Parent=frame
-local barBg=Instance.new("Frame")
-barBg.Size=UDim2.new(0.85,0,0,10)
-barBg.Position=UDim2.new(0.075,0,0.75,0)
-barBg.BackgroundColor3=Color3.fromRGB(40,40,55)
-barBg.BorderSizePixel=0
-barBg.Parent=frame
-local bbc=Instance.new("UICorner")
-bbc.CornerRadius=UDim.new(1,0)
-bbc.Parent=barBg
-local fill=Instance.new("Frame")
-fill.Size=UDim2.new(0.03,0,1,0)
-fill.BackgroundColor3=Color3.fromRGB(120,80,255)
-fill.BorderSizePixel=0
-fill.Parent=barBg
-local fgc=Instance.new("UICorner")
-fgc.CornerRadius=UDim.new(1,0)
-fgc.Parent=fill
-local knob=Instance.new("TextButton")
-knob.Size=UDim2.new(0,24,0,24)
-knob.Position=UDim2.new(0.03,-12,-0.7,0)
-knob.BackgroundColor3=Color3.fromRGB(180,150,255)
-knob.Text=""
-knob.AutoButtonColor=false
-knob.Parent=barBg
-local kc=Instance.new("UICorner")
-kc.CornerRadius=UDim.new(1,0)
-kc.Parent=knob
-local stroke=Instance.new("UIStroke")
-stroke.Color=Color3.fromRGB(255,255,255)
-stroke.Thickness=2
-stroke.Parent=knob
+local minusBtn=Instance.new("TextButton")
+minusBtn.Size=UDim2.new(0.18,0,0,28)
+minusBtn.Position=UDim2.new(0.05,0,0.55,0)
+minusBtn.BackgroundColor3=Color3.fromRGB(70,50,50)
+minusBtn.Text="−"
+minusBtn.TextColor3=Color3.fromRGB(255,255,255)
+minusBtn.Font=Enum.Font.GothamBold
+minusBtn.TextSize=18
+minusBtn.Parent=frame
+local mbc=Instance.new("UICorner")
+mbc.CornerRadius=UDim.new(0,6)
+mbc.Parent=minusBtn
+local plusBtn=Instance.new("TextButton")
+plusBtn.Size=UDim2.new(0.18,0,0,28)
+plusBtn.Position=UDim2.new(0.77,0,0.55,0)
+plusBtn.BackgroundColor3=Color3.fromRGB(50,70,50)
+plusBtn.Text="＋"
+plusBtn.TextColor3=Color3.fromRGB(255,255,255)
+plusBtn.Font=Enum.Font.GothamBold
+plusBtn.TextSize=16
+plusBtn.Parent=frame
+local pbc=Instance.new("UICorner")
+pbc.CornerRadius=UDim.new(0,6)
+pbc.Parent=plusBtn
+local resetBtn=Instance.new("TextButton")
+resetBtn.Size=UDim2.new(0.9,0,0,22)
+resetBtn.Position=UDim2.new(0.05,0,0.82,0)
+resetBtn.BackgroundColor └3=Color3.from────────────────RGB(45,45,55)
+────resetBtn.Text="Reset (16)"
+resetBtn──.TextColor3=─Color3.fromRGB(220,220,220)
+resetBtn.Font=Enum.Font.Gotham
+resetBtn.TextSize=10
+resetBtn.Parent=frame
+local rbc=Instance.new("UICorner")
+rbc.CornerRadius=UDim.new(0,6)
+rbc.Parent=resetBtn
 local enabled=false
-local minSpeed=1
-local maxSpeed=500
-local currentSpeed=16
-local dragging=false
+local speed=16
 local function applySpeed()
     local char=player.Character
     local hum=char and char:FindFirstChildOfClass("Humanoid")
     if not hum then return end
     if enabled then
-        hum.WalkSpeed=currentSpeed
+        hum.WalkSpeed=speed
     else
         hum.WalkSpeed=16
     end
+    speedLabel.Text="Speed: "..speed
 end
-local function updateSpeed(percent)
-    percent=math.clamp(percent,0,1)
-    local spd=math.floor(minSpeed+(maxSpeed-minSpeed)*percent+0.5)
-    currentSpeed=spd
-    speedLabel.Text="Speed: "..spd
-    fill.Size=UDim2.new(percent,0,1,0)
-    knob.Position=UDim2.new(percent,-12,-0.7,0)
+minusBtn.MouseButton1Click:Connect(function()
+    speed=math.max(1,speed-5)
     applySpeed()
-end
-local function getPercentFromX(x)
-    local pos=barBg.AbsolutePosition.X
-    local size=barBg.AbsoluteSize.X
-    return (x-pos)/size
-end
-knob.MouseButton1Down:Connect(function()
-    dragging=true
 end)
-knob.MouseButton1Up:Connect(function()
-    dragging=false
+plusBtn.MouseButton1Click:Connect(function()
+    speed=math.min(500,speed+5)
+    applySpeed()
 end)
-UIS.InputChanged:Connect(function(input)
-    if not dragging then return end
-    if input.UserInputType==Enum.UserInputType.MouseMovement or input.UserInputType==Enum.UserInputType.Touch then
-        updateSpeed(getPercentFromX(input.Position.X))
-    end
-end)
-UIS.InputEnded:Connect(function(input)
-    if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
-        dragging=false
-    end
-end)
-barBg.InputBegan:Connect(function(input)
-    if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
-        updateSpeed(getPercentFromX(input.Position.X))
-        dragging=true
-    end
+resetBtn.MouseButton1Click:Connect(function()
+    speed=16
+    applySpeed()
 end)
 toggleBtn.MouseButton1Click:Connect(function()
     enabled=not enabled
@@ -159,7 +136,6 @@ toggleBtn.MouseButton1Click:Connect(function()
     end
     applySpeed()
 end)
-updateSpeed(0.03)
 player.CharacterAdded:Connect(function()
     task.wait(1)
     applySpeed()
