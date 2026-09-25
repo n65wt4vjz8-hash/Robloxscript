@@ -22,7 +22,9 @@ bc.CornerRadius=UDim.new(0,10)
 bc.Parent=btn
 local enabled=false
 local radius=15
-local tracked={}
+local rotationSpeed=8
+local angle=0
+local lastTime=tick()
 local function isMissile(obj)
     if not obj:IsA("BasePart") and not obj:IsA("Model") then return false end
     local n=obj.Name:lower()
@@ -37,6 +39,11 @@ end
 local function arrange()
     local hrp=getHRP()
     if not hrp then return end
+    local now=tick()
+    local dt=now-lastTime
+    lastTime=now
+    angle=angle+dt*rotationSpeed*math.pi*2
+    if angle>math.pi*2 then angle=angle-math.pi*2 end
     local missiles={}
     for _,obj in ipairs(workspace:GetDescendants()) do
         if isMissile(obj) then
@@ -54,8 +61,8 @@ local function arrange()
     if #missiles==0 then return end
     local center=hrp.Position
     for i,entry in ipairs(missiles) do
-        local angle=(i/#missiles)*math.pi*2
-        local offset=Vector3.new(math.cos(angle)*radius,0,math.sin(angle)*radius)
+        local a=angle+(i/#missiles)*math.pi*2
+        local offset=Vector3.new(math.cos(a)*radius,0,math.sin(a)*radius)
         local targetPos=center+offset
         local part=entry.part
         if part and part.Parent then
@@ -78,6 +85,7 @@ btn.MouseButton1Click:Connect(function()
     if enabled then
         btn.Text="RING: ON"
         btn.BackgroundColor3=Color3.fromRGB(0,150,80)
+        lastTime=tick()
     else
         btn.Text="RING: OFF"
         btn.BackgroundColor3=Color3.fromRGB(60,60,70)
