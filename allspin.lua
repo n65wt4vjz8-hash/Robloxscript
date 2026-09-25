@@ -60,7 +60,7 @@ local radiusLabel=Instance.new("TextLabel")
 radiusLabel.Size=UDim2.new(0.4,0,0,22)
 radiusLabel.Position=UDim2.new(0.3,0,0.42,0)
 radiusLabel.BackgroundTransparency=1
-radiusLabel.Text="Rad: 50"
+radiusLabel.Text="SpinR: 50"
 radiusLabel.TextColor3=Color3.fromRGB(200,220,255)
 radiusLabel.Font=Enum.Font.GothamBold
 radiusLabel.TextSize=11
@@ -123,24 +123,31 @@ local spc=Instance.new("UICorner")
 spc.CornerRadius=UDim.new(0,6)
 spc.Parent=speedPlus
 local enabled=false
-local radius=50
+local detectRadius=50
+local orbitRadius=50
 local rotationSpeed=2
 local angle=0
 local lastTime=tick()
-local cachedObjects={}
+local cachedParts={}
 local cacheTime=0
 local function getHRP()
     local char=player.Character
     if not char then return nil end
     return char:FindFirstChild("HumanoidRootPart")
 end
-local function collectAllParts()
+local function collectMovable()
+    local hrp=getHRP()
+    if not hrp then return {} end
+    local center=hrp.Position
     local list={}
     for _,obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") then
+        if obj:IsA("BasePart") and not obj.Anchored then
             local char=player.Character
             if not (char and obj:IsDescendantOf(char)) then
-                table.insert(list,obj)
+                local dist=(obj.Position-center).Magnitude
+                if dist<detectRadius then
+                    table.insert(list,obj)
+                end
             end
         end
     end
@@ -154,21 +161,20 @@ local function arrange()
     lastTime=now
     angle=angle+dt*rotationSpeed*math.pi*2
     if angle>math.pi*2 then angle=angle-math.pi*2 end
-    if now-cacheTime>2 then
-        cachedObjects=collectAllParts()
+    if now-cacheTime>0.5 then
+        cachedParts=collectMovable()
         cacheTime=now
     end
-    local items=cachedObjects
+    local items=cachedParts
     if #items==0 then return end
     local center=hrp.Position
     local total=#items
     for i,part in ipairs(items) do
         if part and part.Parent then
             local a=angle+(i/total)*math.pi*2
-            local offset=Vector3.new(math.cos(a)*radius,0,math.sin(a)*radius)
+            local offset=Vector3.new(math.cos(a)*orbitRadius,0,math.sin(a)*orbitRadius)
             local targetPos=center+offset
             pcall(function()
-                part.Anchored=false
                 part.CFrame=CFrame.new(targetPos,center)
             end)
         end
@@ -184,7 +190,7 @@ btn.MouseButton1Click:Connect(function()
         btn.Text="SPIN: ON"
         btn.BackgroundColor3=Color3.fromRGB(0,150,80)
         lastTime=tick()
-        cachedObjects=collectAllParts()
+        cachedParts=collectMovable()
         cacheTime=tick()
     else
         btn.Text="SPIN: OFF"
@@ -192,12 +198,14 @@ btn.MouseButton1Click:Connect(function()
     end
 end)
 radiusMinus.MouseButton1Click:Connect(function()
-    radius=math.max(5,radius-5)
-    radiusLabel.Text="Rad: "..radius
+    detectRadius=math.max(5,detectRadius-5)
+    orbitRadius=detectRadius
+    radiusLabel.Text="SpinR: "..detectRadius
 end)
 radiusPlus.MouseButton1Click:Connect(function()
-    radius=math.min(500,radius+5)
-    radiusLabel.Text="Rad: "..radius
+    detectRadius=math.min(200,detectRadius+5)
+    orbitRadius=detectRadius
+    radiusLabel.Text="SpinR: "..detectRadius
 end)
 speedMinus.MouseButton1Click:Connect(function()
     rotationSpeed=math.max(0.5,rotationSpeed-0.5)
