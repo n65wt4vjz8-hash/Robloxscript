@@ -135,6 +135,19 @@ local function getHRP()
     if not char then return nil end
     return char:FindFirstChild("HumanoidRootPart")
 end
+local function isMyPart(part)
+    local myChar=player.Character
+    if myChar and part:IsDescendantOf(myChar) then return true end
+    return false
+end
+local function isGround(part)
+    if part:IsDescendantOf(workspace.Terrain) then return true end
+    local n=part.Name:lower()
+    if n:find("baseplate") or n:find("ground") or n:find("floor") or n:find("terrain") then return true end
+    local s=part.Size
+    if s.X>100 or s.Y>100 or s.Z>100 then return true end
+    return false
+end
 local function collectMovable()
     local hrp=getHRP()
     if not hrp then return {} end
@@ -142,8 +155,7 @@ local function collectMovable()
     local list={}
     for _,obj in ipairs(workspace:GetDescendants()) do
         if obj:IsA("BasePart") and not obj.Anchored then
-            local char=player.Character
-            if not (char and obj:IsDescendantOf(char)) then
+            if not isMyPart(obj) and not isGround(obj) then
                 local dist=(obj.Position-center).Magnitude
                 if dist<detectRadius then
                     table.insert(list,obj)
