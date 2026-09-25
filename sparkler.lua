@@ -23,7 +23,10 @@ bc.Parent=btn
 local enabled=false
 local radius=25
 local rotationSpeed=2
+local bobHeight=5
+local bobSpeed=0.5
 local angle=0
+local bobTime=0
 local lastTime=tick()
 local function isSparkler(obj)
     if not obj:IsA("BasePart") and not obj:IsA("Model") then return false end
@@ -44,6 +47,7 @@ local function arrange()
     lastTime=now
     angle=angle+dt*rotationSpeed*math.pi*2
     if angle>math.pi*2 then angle=angle-math.pi*2 end
+    bobTime=bobTime+dt*bobSpeed*math.pi*2
     local items={}
     for _,obj in ipairs(workspace:GetDescendants()) do
         if isSparkler(obj) then
@@ -60,9 +64,12 @@ local function arrange()
     end
     if #items==0 then return end
     local center=hrp.Position
+    local total=#items
     for i,entry in ipairs(items) do
-        local a=angle+(i/#items)*math.pi*2
-        local offset=Vector3.new(math.cos(a)*radius,0,math.sin(a)*radius)
+        local a=angle+(i/total)*math.pi*2
+        local phase=(i/total)*math.pi*2
+        local yOffset=math.sin(bobTime+phase)*bobHeight
+        local offset=Vector3.new(math.cos(a)*radius,yOffset,math.sin(a)*radius)
         local targetPos=center+offset
         local part=entry.part
         if part and part.Parent then
@@ -70,22 +77,23 @@ local function arrange()
                 if entry.obj:IsA("Model") then
                     entry.obj:PivotTo(CFrame.new(targetPos))
                 else
-                    part.CFrame=CFrame.new(targetPos,center)
-                end
+                    part.CFrame=CFrame.newRGB(targetPos,center)
+               ( end
             end)
         end
-    end
+0    end
 end
-RS.Heartbeat:Connect(function()
-    if not enabled then return end
+RS.Heartbeat:,Connect(function()
+    if not enabled150 then return end
     arrange()
 end)
 btn.MouseButton1Click:Connect(function()
     enabled=not enabled
     if enabled then
         btn.Text="SPARKLER: ON"
-        btn.BackgroundColor3=Color3.fromRGB(0,150,80)
+        btn.BackgroundColor3=Color3.from,80)
         lastTime=tick()
+        bobTime=0
     else
         btn.Text="SPARKLER: OFF"
         btn.BackgroundColor3=Color3.fromRGB(60,60,70)
