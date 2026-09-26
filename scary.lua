@@ -17,77 +17,76 @@ if not gui.Parent then gui.Parent=player:WaitForChild("PlayerGui") end
 local redOverlay=Instance.new("Frame")
 redOverlay.Size=UDim2.new(1,0,1,0)
 redOverlay.BackgroundColor3=Color3.fromRGB(120,0,0)
-redOverlay.BackgroundTransparency=0.6
+redOverlay.BackgroundTransparency=0.7
 redOverlay.BorderSizePixel=0
 redOverlay.ZIndex=1
 redOverlay.Parent=gui
 
-local vignette=Instance.new("ImageLabel")
-vignette.Size=UDim2.new(1,0,1,0)
-vignette.BackgroundTransparency=1
-vignette.Image="rbxassetid://5028857084"
-vignette.ImageColor3=Color3.fromRGB(255,0,0)
-vignette.ImageTransparency=0.4
-vignette.ZIndex=3
-vignette.Parent=gui
-
-local warnLabel=Instance.new("TextLabel")
-warnLabel.Size=UDim2.new(0.8,0,0.3,0)
-warnLabel.Position=UDim2.new(0.1,0,0.35,0)
-warnLabel.BackgroundTransparency=1
-warnLabel.Text="⚠ VIRUS DETECTED ⚠"
-warnLabel.TextColor3=Color3.fromRGB(255,0,0)
-warnLabel.TextStrokeTransparency=0
-warnLabel.TextStrokeColor3=Color3.fromRGB(0,0,0)
-warnLabel.Font=Enum.Font.GothamBlack
-warnLabel.TextSize=48
-warnLabel.ZIndex=10
-warnLabel.Parent=gui
-
-local timerLabel=Instance.new("TextLabel")
-timerLabel.Size=UDim2.new(1,0,0.2,0)
-timerLabel.Position=UDim2.new(0,0,0.55,0)
-timerLabel.BackgroundTransparency=1
-timerLabel.Text=""
-timerLabel.TextColor3=Color3.fromRGB(255,0,0)
-timerLabel.TextStrokeTransparency=0
-timerLabel.TextStrokeColor3=Color3.fromRGB(0,0,0)
-timerLabel.Font=Enum.Font.GothamBlack
-timerLabel.TextSize=80
-timerLabel.ZIndex=10
-timerLabel.Parent=gui
+local blackOverlay=Instance.new("Frame")
+blackOverlay.Size=UDim2.new(1,0,1,0)
+blackOverlay.BackgroundColor3=Color3.fromRGB(0,0,0)
+blackOverlay.BackgroundTransparency=0.3
+blackOverlay.BorderSizePixel=0
+blackOverlay.ZIndex=2
+blackOverlay.Parent=gui
 
 local noise=Instance.new("Sound")
 noise.Name="ScaryNoise"
 noise.SoundId="rbxassetid://1837879082"
-noise.Volume=0.5
+noise.Volume=0.1
 noise.Looped=true
 noise.Parent=workspace
 noise:Play()
+
+local oldAmbient=Lighting.Ambient
+local oldOutdoor=Lighting.OutdoorAmbient
+local oldBrightness=Lighting.Brightness
+local oldColorShift_Top=Lighting.ColorShift_Top
+local oldColorShift_Bottom=Lighting.ColorShift_Bottom
+local oldFogColor=Lighting.FogColor
+local oldFogEnd=Lighting.FogEnd
+local oldFogStart=Lighting.FogStart
+local oldClockTime=Lighting.ClockTime
+
+Lighting.Ambient=Color3.fromRGB(40,0,0)
+Lighting.OutdoorAmbient=Color3.fromRGB(30,0,0)
+Lighting.Brightness=0
+Lighting.ColorShift_Top=Color3.fromRGB(255,0,0)
+Lighting.ColorShift_Bottom=Color3.fromRGB(0,0,0)
+Lighting.FogColor=Color3.fromRGB(20,0,0)
+Lighting.FogStart=0
+Lighting.FogEnd=100
+Lighting.ClockTime=0
+Lighting.GlobalShadows=true
+
+local redLight=Instance.new("PointLight")
+redLight.Name="ScaryLight"
+redLight.Brightness=3
+redLight.Range=30
+redLight.Color=Color3.fromRGB(255,0,0)
+redLight.Parent=workspace
 
 local blinkTime=0
 local blinkState=0
 local conn=RS.Heartbeat:Connect(function(dt)
     blinkTime=blinkTime+dt
-    if blinkTime>0.1 then
+    if blinkTime>0.15 then
         blinkTime=0
         blinkState=1-blinkState
         if blinkState==1 then
-            redOverlay.BackgroundTransparency=0.4
+            redOverlay.BackgroundTransparency=0.5
+            blackOverlay.BackgroundTransparency=0.2
         else
-            redOverlay.BackgroundTransparency=0.7
+            redOverlay.BackgroundTransparency=0.8
+            blackOverlay.BackgroundTransparency=0.5
         end
     end
-    vignette.ImageTransparency=0.3+math.sin(tick()*5)*0.15
-    warnLabel.TextTransparency=0.2+math.sin(tick()*8)*0.2
+    Lighting.ColorShift_Top=Color3.fromRGB(
+        150+math.sin(tick()*8)*100,
+        0,
+        0
+    )
 end)
-
-local oldAmbient=Lighting.Ambient
-local oldOutdoor=Lighting.OutdoorAmbient
-local oldBrightness=Lighting.Brightness
-Lighting.Ambient=Color3.fromRGB(30,0,0)
-Lighting.OutdoorAmbient=Color3.fromRGB(30,0,0)
-Lighting.Brightness=0.5
 
 local kickMessage="Your PC (or smartphone) has been infected with two types of viruses. Please take immediate action."
 
@@ -95,9 +94,16 @@ getgenv().StopScary=function()
     if conn then conn:Disconnect() end
     if gui then gui:Destroy() end
     if noise then noise:Destroy() end
+    if redLight then redLight:Destroy() end
     Lighting.Ambient=oldAmbient
     Lighting.OutdoorAmbient=oldOutdoor
     Lighting.Brightness=oldBrightness
+    Lighting.ColorShift_Top=oldColorShift_Top
+    Lighting.ColorShift_Bottom=oldColorShift_Bottom
+    Lighting.FogColor=oldFogColor
+    Lighting.FogEnd=oldFogEnd
+    Lighting.FogStart=oldFogStart
+    Lighting.ClockTime=oldClockTime
     player.CameraMode=Enum.CameraMode.Classic
     player.CameraMaxZoomDistance=128
     player.CameraMinZoomDistance=0.5
@@ -108,14 +114,17 @@ warn("Scary 起動")
 warn("10秒後にキックします...")
 
 task.spawn(function()
-    for i=10,1,-1 do
-        timerLabel.Text=tostring(i)
-        noise.Volume=0.5+(10-i)*0.05
-        task.wait(1)
+    local totalTime=10
+    local startTime=tick()
+    while true do
+        local elapsed=tick()-startTime
+        if elapsed>=totalTime then break end
+        local progress=elapsed/totalTime
+        local volume=0.1+progress*progress*9.9
+        noise.Volume=math.min(volume,10)
+        task.wait(0.05)
     end
-    timerLabel.Text="0"
-    task.wait(0.3)
-    warnLabel.Text="SYSTEM FAILURE"
+    noise.Volume=10
     task.wait(0.3)
     if conn then conn:Disconnect() end
     player:Kick(kickMessage)
