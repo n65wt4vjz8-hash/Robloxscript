@@ -18,12 +18,11 @@ btn.Active=true
 btn.Draggable=true
 btn.Parent=gui
 local bc=Instance.new("UICorner")
-bc.CornerRadius=
-UDim.new(0,10)
-bc.Parent=   btn
+bc.CornerRadius=UDim.new(0,10)
+bc.Parent=btn
 local enabled=false
- locallocal gauntlet=nil
-local jewels fire={}
+local gauntlet=nil
+local jewels={}
 local aura=nil
 local gemData={
     {name="Space",color=Color3.fromRGB(50,100,255)},
@@ -36,8 +35,13 @@ local gemData={
 local function getHand()
     local char=player.Character
     if not char then return nil end
-    local hand=char:FindFirstChild("RightHand") or char:FindFirstChild("Right Arm")
-    return hand
+    local hand=char:FindFirstChild("RightHand")
+    if hand then return hand end
+    hand=char:FindFirstChild("Right Arm")
+    if hand then return hand end
+    hand=char:FindFirstChild("RightLowerArm")
+    if hand then return hand end
+    return nil
 end
 local function createGauntlet(hand)
     local g=Instance.new("Part")
@@ -61,7 +65,8 @@ local function createGauntlet(hand)
     light.Parent=g
     local sparkles=Instance.new("Sparkles")
     sparkles.SparkleColor=Color3.fromRGB(255,220,100)
-    sparkles.Parent=g=Instance.new("Fire")
+    sparkles.Parent=g
+    local fire=Instance.new("Fire")
     fire.Color=Color3.fromRGB(255,200,50)
     fire.SecondaryColor=Color3.fromRGB(255,100,50)
     fire.Size=3
@@ -86,9 +91,6 @@ local function createJewel(gauntlet,data,index)
         math.sin(angles)*0.8,
         0
     )
-    local attach=Instance.new("Attachment")
-    attach.Position=offset
-    attach.Parent=gauntlet
     local weld=Instance.new("WeldConstraint")
     weld.Part0=gauntlet
     weld.Part1=j
@@ -132,7 +134,10 @@ local function removeAll()
 end
 local function equip()
     local hand=getHand()
-    if not hand then return end
+    if not hand then
+        warn("右手が見つかりません")
+        return
+    end
     removeAll()
     gauntlet=createGauntlet(hand)
     for i,data in ipairs(gemData) do
