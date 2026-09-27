@@ -1,10 +1,9 @@
---[[ neon_program.lua - 完全版（ハブ開閉トグル付き） ]]
+--[[ neon_program.lua - 完全版（ハブ開閉トグル付き・音なし） ]]
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
 local CoreGui = game:GetService("CoreGui")
-local SoundService = game:GetService("SoundService")
 
 local plr = Players.LocalPlayer
 local cam = workspace.CurrentCamera
@@ -30,11 +29,6 @@ local C_PURPLE = Color3.fromRGB(180, 80, 255)
 local C_BG     = Color3.fromRGB(0, 3, 0)
 local C_PANEL  = Color3.fromRGB(0, 8, 3)
 local C_LINE   = Color3.fromRGB(0, 60, 30)
-
-local MUSIC_ID = "rbxassetid://116079585368153"
-local MUSIC_VOLUME = 3
-local MUSIC_LOOPED = true
-local musicInstance = nil
 
 local authed = false
 local selectedPlayers = {}
@@ -69,7 +63,7 @@ local lastResetTime = 0
 local lastCFrame = nil
 local antiConns = {}
 
--- ★ flyBV / flyBG を先に宣言（antiGrab から参照するため）
+-- flyBV / flyBG を先に宣言（antiGrab から参照するため）
 local flyBV, flyBG, flyConn
 
 local originalLighting = {
@@ -139,23 +133,6 @@ RunService.RenderStepped:Connect(function(dt)
         frameCount = 0; fpsTimer = 0
     end
 end)
-
-------------------------------------------------------------
--- 音楽
-------------------------------------------------------------
-local function startMusic()
-    if musicInstance then return end
-    musicInstance = Instance.new("Sound")
-    musicInstance.Name = "NeonProgramMusic"
-    musicInstance.SoundId = MUSIC_ID
-    musicInstance.Volume = MUSIC_VOLUME
-    musicInstance.Looped = MUSIC_LOOPED
-    musicInstance.Parent = SoundService
-    musicInstance:Play()
-end
-local function stopMusic()
-    if musicInstance then musicInstance:Destroy(); musicInstance = nil end
-end
 
 ------------------------------------------------------------
 -- ANTI 機能
@@ -877,30 +854,13 @@ titleBar.BackgroundTransparency = 0.7; titleBar.BorderSizePixel = 0
 titleBar.ZIndex = 104; titleBar.Parent = mainUI
 
 local titleBarLbl = Instance.new("TextLabel")
-titleBarLbl.Size = UDim2.new(1,-70,1,0); titleBarLbl.Position = UDim2.new(0,10,0,0)
+titleBarLbl.Size = UDim2.new(1,-32,1,0); titleBarLbl.Position = UDim2.new(0,10,0,0)
 titleBarLbl.BackgroundTransparency = 1
 titleBarLbl.Text = "> NEON_PROGRAM"
 titleBarLbl.TextColor3 = C_GREEN; titleBarLbl.TextSize = 11
 titleBarLbl.Font = Enum.Font.Code
 titleBarLbl.TextXAlignment = Enum.TextXAlignment.Left
 titleBarLbl.ZIndex = 105; titleBarLbl.Parent = titleBar
-
-local musicBtn = Instance.new("TextButton")
-musicBtn.Size = UDim2.new(0, 22, 1, 0)
-musicBtn.Position = UDim2.new(1, -44, 0, 0)
-musicBtn.BackgroundColor3 = C_GREEN
-musicBtn.BackgroundTransparency = 0.5
-musicBtn.Text = "♪"
-musicBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-musicBtn.TextSize = 12
-musicBtn.Font = Enum.Font.GothamBold
-musicBtn.BorderSizePixel = 0
-musicBtn.ZIndex = 105
-musicBtn.Parent = titleBar
-bindClick(musicBtn, function()
-    if musicInstance then stopMusic(); musicBtn.TextColor3 = C_GREEN2
-    else startMusic(); musicBtn.TextColor3 = Color3.fromRGB(255, 255, 255) end
-end)
 
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0,22,1,0); closeBtn.Position = UDim2.new(1,-22,0,0)
@@ -910,7 +870,7 @@ closeBtn.TextSize = 11; closeBtn.Font = Enum.Font.Code
 closeBtn.BorderSizePixel = 0; closeBtn.ZIndex = 105; closeBtn.Parent = titleBar
 makeDraggable(mainUI, titleBar)
 
--- ★ ハブ開閉用フローティングボタン
+-- ハブ開閉用フローティングボタン
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 44, 0, 44)
 toggleBtn.Position = UDim2.new(0, 20, 0.5, 200)
@@ -941,7 +901,7 @@ bindClick(closeBtn, function()
     setHubVisible(false)
 end)
 
--- ★ キーボードショートカット（右Shiftで開閉）
+-- キーボードショートカット（右Shiftで開閉）
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if not authed then return end
@@ -1259,10 +1219,9 @@ local function onAuthSuccess()
         loadScreen.Visible = false
         keyScreen.Visible = false
         mainUI.Visible = true
-        toggleBtn.Visible = false   -- ★ ハブが開いている時はボタン非表示
+        toggleBtn.Visible = false
         fpsPanel.Visible = true
         selectTab("main")
-        startMusic()
         for _, p in ipairs(Players:GetPlayers()) do
             if p ~= plr then
                 makePlayerButton(p)
