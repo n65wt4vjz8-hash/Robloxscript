@@ -1,11 +1,27 @@
---[[ neon_program.lua - Key → ロード → 選択式ESP + TP + FPS/ms ]]
+--[[ neon_program.lua - Key → ロード → ESP + TP + FPS/ms + FOV調整 ]]
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local UIS = game:GetService("UserInputService")
 
 local plr = Players.LocalPlayer
 local cam = workspace.CurrentCamera
 local PlayerGui = plr:WaitForChild("PlayerGui")
+
+------------------------------------------------------------
+-- GUI親の取得（Delta対応）
+------------------------------------------------------------
+local function getGuiParent()
+    local ok = pcall(function()
+        local test = Instance.new("ScreenGui")
+        test.Parent = CoreGui
+        test:Destroy()
+    end)
+    if ok then return CoreGui end
+    return PlayerGui
+end
+local guiParent = getGuiParent()
 
 ------------------------------------------------------------
 -- カラー
@@ -31,6 +47,10 @@ local fpsValue = 60
 local msValue = 16.7
 local fpsTimer = 0
 local frameCount = 0
+
+-- ★ FOV
+local defaultFOV = cam.FieldOfView
+local currentFOV = defaultFOV
 
 ------------------------------------------------------------
 -- ヘルパー
@@ -90,13 +110,29 @@ local function addGrid(parent, cell, transparency, color)
     end)
 end
 
+-- タッチ・マウス両対応クリック
+local function bindClick(btn, callback)
+    local lastClick = 0
+    local function tryClick()
+        local now = tick()
+        if now - lastClick < 0.2 then return end
+        lastClick = now
+        callback()
+    end
+    btn.MouseButton1Click:Connect(tryClick)
+    btn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            tryClick()
+        end
+    end)
+end
+
 ------------------------------------------------------------
 -- FPS計算
 ------------------------------------------------------------
 RunService.RenderStepped:Connect(function(dt)
     frameCount = frameCount + 1
     fpsTimer = fpsTimer + dt
-
     if fpsTimer >= 0.5 then
         fpsValue = math.floor(frameCount / fpsTimer)
         msValue = (fpsTimer / frameCount) * 1000
@@ -113,7 +149,8 @@ gui.Name = "NeonProgramGui"
 gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
 gui.DisplayOrder = 999
-gui.Parent = PlayerGui
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Parent = guiParent
 
 -- 背景
 local bg = Instance.new("Frame")
@@ -134,8 +171,7 @@ addGrid(gridContainer, 60, 0.9, C_CYAN)
 -- 走査線
 task.spawn(function()
     task.wait(0.2)
-    local h = bg.AbsoluteSize.Y
-    for y = 0, h, 3 do
+    for y = 0, 1080, 4 do
         local line = Instance.new("Frame")
         line.Size = UDim2.new(1, 0, 0, 1)
         line.Position = UDim2.new(0, 0, 0, y)
@@ -150,12 +186,12 @@ end)
 addCorners(gui, C_CYAN, 50, 5)
 
 ------------------------------------------------------------
--- PERFORMANCE パネル
+-- PERFORMANCE パネル（右上）
 ------------------------------------------------------------
 local infoPanel = Instance.new("Frame")
 infoPanel.Name = "PerformancePanel"
-infoPanel.Size = UDim2.new(0, 180, 0, 78)
-infoPanel.Position = UDim2.new(1, -196, 0, 16)
+infoPanel.Size = UDim2.new(0, 170, 0, 76)
+infoPanel.Position = UDim2.new(1, -186, 0, 16)
 infoPanel.BackgroundColor3 = Color3.fromRGB(5, 10, 20)
 infoPanel.BackgroundTransparency = 0.3
 infoPanel.BorderSizePixel = 0
@@ -201,14 +237,12 @@ task.spawn(function()
         local hr = math.floor((t / 3600) % 24)
         local mn = math.floor((t / 60) % 60)
         local sc = math.floor(t % 60)
-
         infoData.Text = string.format(
             "FPS: %d | MS: %.1f\nSES: 0x%X\nT+%02d:%02d:%02d",
             fpsValue, msValue,
             math.floor(t * 100) % 0xFFFF,
             hr, mn, sc
         )
-
         if fpsValue < 30 then
             infoData.TextColor3 = C_RED
         elseif fpsValue < 50 then
@@ -216,9 +250,145 @@ task.spawn(function()
         else
             infoData.TextColor3 = C_GREEN
         end
-
         task.wait(0.2)
     end
+end)
+
+------------------------------------------------------------
+-- ★ FOV パネル（PERFORMANCEの下）
+------------------------------------------------------------
+local fovPanel = Instance.new("Frame")
+fovPanel.Name = "FovPanel"
+fovPanel.Size = UDim2.new(0, 170, 0, 60)
+fovPanel.Position = UDim2.new(1, -186, 0, 100)
+fovPanel.BackgroundColor3 = Color3.fromRGB(5, 10, 20)
+fovPanel.BackgroundTransparency = 0.3
+fovPanel.BorderSizePixel = 0
+fovPanel.ZIndex = 10
+fovPanel.Parent = gui
+Instance.new("UICorner", fovPanel).CornerRadius = UDim.new(0, 3)
+
+local fovStroke = Instance.new("UIStroke")
+fovStroke.Thickness = 1
+fovStroke.Color = C_PURPLE
+fovStroke.Transparency = 0.3
+fovStroke.Parent = fovPanel
+
+addCorners(fovPanel, C_PURPLE, 6, 11)
+
+local fovHeader = Instance.new("TextLabel")
+fovHeader.Size = UDim2.new(1, -8, 0, 14)
+fovHeader.Position = UDim2.new(0, 6, 0, 2)
+fovHeader.BackgroundTransparency = 1
+fovHeader.Text = "▸ FOV CONTROL"
+fovHeader.TextColor3 = C_PURPLE
+fovHeader.TextSize = 9
+fovHeader.Font = Enum.Font.Code
+fovHeader.TextXAlignment = Enum.TextXAlignment.Left
+fovHeader.ZIndex = 12
+fovHeader.Parent = fovPanel
+
+-- 数値表示
+local fovValueLbl = Instance.new("TextLabel")
+fovValueLbl.Size = UDim2.new(1, -8, 0, 16)
+fovValueLbl.Position = UDim2.new(0, 6, 0, 18)
+fovValueLbl.BackgroundTransparency = 1
+fovValueLbl.Text = "FOV: " .. math.floor(currentFOV)
+fovValueLbl.TextColor3 = C_CYAN
+fovValueLbl.TextSize = 12
+fovValueLbl.Font = Enum.Font.Code
+fovValueLbl.TextXAlignment = Enum.TextXAlignment.Left
+fovValueLbl.ZIndex = 12
+fovValueLbl.Parent = fovPanel
+
+-- − ボタン
+local minusBtn = Instance.new("TextButton")
+minusBtn.Size = UDim2.new(0, 28, 0, 20)
+minusBtn.Position = UDim2.new(0, 6, 0, 36)
+minusBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 40)
+minusBtn.BackgroundTransparency = 0.2
+minusBtn.Text = "−"
+minusBtn.TextColor3 = C_CYAN
+minusBtn.TextSize = 16
+minusBtn.Font = Enum.Font.Code
+minusBtn.BorderSizePixel = 0
+minusBtn.ZIndex = 12
+minusBtn.Parent = fovPanel
+Instance.new("UICorner", minusBtn).CornerRadius = UDim.new(0, 2)
+
+local minusStroke = Instance.new("UIStroke")
+minusStroke.Thickness = 1
+minusStroke.Color = C_CYAN
+minusStroke.Transparency = 0.4
+minusStroke.Parent = minusBtn
+
+-- + ボタン
+local plusBtn = Instance.new("TextButton")
+plusBtn.Size = UDim2.new(0, 28, 0, 20)
+plusBtn.Position = UDim2.new(0, 38, 0, 36)
+plusBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 40)
+plusBtn.BackgroundTransparency = 0.2
+plusBtn.Text = "+"
+plusBtn.TextColor3 = C_CYAN
+plusBtn.TextSize = 16
+plusBtn.Font = Enum.Font.Code
+plusBtn.BorderSizePixel = 0
+plusBtn.ZIndex = 12
+plusBtn.Parent = fovPanel
+Instance.new("UICorner", plusBtn).CornerRadius = UDim.new(0, 2)
+
+local plusStroke = Instance.new("UIStroke")
+plusStroke.Thickness = 1
+plusStroke.Color = C_CYAN
+plusStroke.Transparency = 0.4
+plusStroke.Parent = plusBtn
+
+-- RESET ボタン
+local resetFovBtn = Instance.new("TextButton")
+resetFovBtn.Size = UDim2.new(0, 56, 0, 20)
+resetFovBtn.Position = UDim2.new(0, 70, 0, 36)
+resetFovBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 40)
+resetFovBtn.BackgroundTransparency = 0.2
+resetFovBtn.Text = "RESET"
+resetFovBtn.TextColor3 = C_PINK
+resetFovBtn.TextSize = 9
+resetFovBtn.Font = Enum.Font.Code
+resetFovBtn.BorderSizePixel = 0
+resetFovBtn.ZIndex = 12
+resetFovBtn.Parent = fovPanel
+Instance.new("UICorner", resetFovBtn).CornerRadius = UDim.new(0, 2)
+
+local resetStroke = Instance.new("UIStroke")
+resetStroke.Thickness = 1
+resetStroke.Color = C_PINK
+resetStroke.Transparency = 0.4
+resetStroke.Parent = resetFovBtn
+
+-- プリセットボタン（小さい）
+local presetFrame = Instance.new("Frame")
+presetFrame.Size = UDim2.new(1, -8, 0, 0)
+presetFrame.Position = UDim2.new(0, 6, 0, 0)
+presetFrame.BackgroundTransparency = 1
+presetFrame.ZIndex = 12
+presetFrame.Parent = fovPanel
+
+local function updateFOV(newFOV)
+    newFOV = math.clamp(newFOV, 30, 120)
+    currentFOV = newFOV
+    cam.FieldOfView = newFOV
+    fovValueLbl.Text = "FOV: " .. math.floor(newFOV)
+end
+
+bindClick(minusBtn, function()
+    updateFOV(currentFOV - 5)
+end)
+
+bindClick(plusBtn, function()
+    updateFOV(currentFOV + 5)
+end)
+
+bindClick(resetFovBtn, function()
+    updateFOV(defaultFOV)
 end)
 
 ------------------------------------------------------------
@@ -237,31 +407,10 @@ title.BackgroundTransparency = 1
 title.Text = "◢ ACCESS TERMINAL ◣"
 title.TextColor3 = C_CYAN
 title.TextStrokeTransparency = 1
-title.TextSize = 52
+title.TextSize = 42
 title.Font = Enum.Font.Code
 title.ZIndex = 10
 title.Parent = keyScreen
-
-local titleGlow = title:Clone()
-titleGlow.TextColor3 = C_CYAN
-titleGlow.TextTransparency = 0.6
-titleGlow.ZIndex = 9
-titleGlow.Parent = keyScreen
-
-task.spawn(function()
-    while gui.Parent do
-        task.wait(math.random(2, 5))
-        local orig = title.TextColor3
-        for i = 1, 4 do
-            title.TextColor3 = Color3.fromRGB(255, 255, 255)
-            titleGlow.TextTransparency = 0.2
-            task.wait(0.05)
-            title.TextColor3 = orig
-            titleGlow.TextTransparency = 0.6
-            task.wait(0.05)
-        end
-    end
-end)
 
 local subtitle = Instance.new("TextLabel")
 subtitle.Size = UDim2.new(1, 0, 0, 24)
@@ -269,14 +418,14 @@ subtitle.Position = UDim2.new(0, 0, 0.19, 0)
 subtitle.BackgroundTransparency = 1
 subtitle.Text = "// SECURE AUTHENTICATION PROTOCOL v3.7.1"
 subtitle.TextColor3 = C_PURPLE
-subtitle.TextSize = 13
+subtitle.TextSize = 12
 subtitle.Font = Enum.Font.Code
 subtitle.ZIndex = 10
 subtitle.Parent = keyScreen
 
 local inputPanel = Instance.new("Frame")
-inputPanel.Size = UDim2.new(0, 500, 0, 130)
-inputPanel.Position = UDim2.new(0.5, -250, 0.42, 0)
+inputPanel.Size = UDim2.new(0, 420, 0, 120)
+inputPanel.Position = UDim2.new(0.5, -210, 0.42, 0)
 inputPanel.BackgroundColor3 = C_PANEL
 inputPanel.BackgroundTransparency = 0.2
 inputPanel.BorderSizePixel = 0
@@ -290,7 +439,7 @@ panelStroke.Color = C_CYAN
 panelStroke.Transparency = 0.2
 panelStroke.Parent = inputPanel
 
-addCorners(inputPanel, C_CYAN, 14, 11)
+addCorners(inputPanel, C_CYAN, 12, 11)
 
 local inputLabel = Instance.new("TextLabel")
 inputLabel.Size = UDim2.new(1, -24, 0, 16)
@@ -298,22 +447,22 @@ inputLabel.Position = UDim2.new(0, 12, 0, 8)
 inputLabel.BackgroundTransparency = 1
 inputLabel.Text = "▸ KEY INPUT REQUIRED"
 inputLabel.TextColor3 = C_CYAN
-inputLabel.TextSize = 12
+inputLabel.TextSize = 11
 inputLabel.Font = Enum.Font.Code
 inputLabel.TextXAlignment = Enum.TextXAlignment.Left
 inputLabel.ZIndex = 11
 inputLabel.Parent = inputPanel
 
 local keyBox = Instance.new("TextBox")
-keyBox.Size = UDim2.new(1, -24, 0, 50)
-keyBox.Position = UDim2.new(0, 12, 0, 32)
+keyBox.Size = UDim2.new(1, -24, 0, 46)
+keyBox.Position = UDim2.new(0, 12, 0, 30)
 keyBox.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 keyBox.BackgroundTransparency = 0.1
 keyBox.TextColor3 = C_CYAN
 keyBox.PlaceholderText = "> enter your key _"
 keyBox.PlaceholderColor3 = Color3.fromRGB(80, 80, 120)
 keyBox.Text = ""
-keyBox.TextSize = 22
+keyBox.TextSize = 20
 keyBox.Font = Enum.Font.Code
 keyBox.ClearTextOnFocus = false
 keyBox.BorderSizePixel = 0
@@ -327,23 +476,14 @@ keyBoxStroke.Color = C_PINK
 keyBoxStroke.Transparency = 0.1
 keyBoxStroke.Parent = keyBox
 
-task.spawn(function()
-    while gui.Parent do
-        task.wait(0.4)
-        if keyBoxStroke then
-            keyBoxStroke.Transparency = (keyBoxStroke.Transparency == 0.1) and 0.5 or 0.1
-        end
-    end
-end)
-
 local verifyBtn = Instance.new("TextButton")
-verifyBtn.Size = UDim2.new(1, -24, 0, 36)
-verifyBtn.Position = UDim2.new(0, 12, 1, -48)
+verifyBtn.Size = UDim2.new(1, -24, 0, 32)
+verifyBtn.Position = UDim2.new(0, 12, 1, -42)
 verifyBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 verifyBtn.BackgroundTransparency = 0.3
 verifyBtn.TextColor3 = C_GREEN
 verifyBtn.Text = "[ ▶ EXECUTE VERIFICATION ]"
-verifyBtn.TextSize = 15
+verifyBtn.TextSize = 13
 verifyBtn.Font = Enum.Font.Code
 verifyBtn.BorderSizePixel = 0
 verifyBtn.ZIndex = 11
@@ -357,12 +497,12 @@ verifyStroke.Transparency = 0.3
 verifyStroke.Parent = verifyBtn
 
 local statusLbl = Instance.new("TextLabel")
-statusLbl.Size = UDim2.new(1, 0, 0, 40)
-statusLbl.Position = UDim2.new(0, 0, 0.63, 0)
+statusLbl.Size = UDim2.new(1, 0, 0, 34)
+statusLbl.Position = UDim2.new(0, 0, 0.62, 0)
 statusLbl.BackgroundTransparency = 1
 statusLbl.Text = ""
 statusLbl.TextColor3 = C_RED
-statusLbl.TextSize = 20
+statusLbl.TextSize = 18
 statusLbl.Font = Enum.Font.Code
 statusLbl.ZIndex = 10
 statusLbl.Parent = keyScreen
@@ -396,25 +536,14 @@ loadTitle.BackgroundTransparency = 1
 loadTitle.Text = "◢ INITIALIZING ◣"
 loadTitle.TextColor3 = C_CYAN
 loadTitle.TextStrokeTransparency = 1
-loadTitle.TextSize = 42
+loadTitle.TextSize = 38
 loadTitle.Font = Enum.Font.Code
 loadTitle.ZIndex = 21
 loadTitle.Parent = loadScreen
 
-local loadSubtitle = Instance.new("TextLabel")
-loadSubtitle.Size = UDim2.new(1, 0, 0, 24)
-loadSubtitle.Position = UDim2.new(0, 0, 0.17, 0)
-loadSubtitle.BackgroundTransparency = 1
-loadSubtitle.Text = "// PREPARING TO RENDER WORLD"
-loadSubtitle.TextColor3 = C_PURPLE
-loadSubtitle.TextSize = 13
-loadSubtitle.Font = Enum.Font.Code
-loadSubtitle.ZIndex = 21
-loadSubtitle.Parent = loadScreen
-
 local logFrame = Instance.new("Frame")
-logFrame.Size = UDim2.new(0, 600, 0, 260)
-logFrame.Position = UDim2.new(0.5, -300, 0.35, 0)
+logFrame.Size = UDim2.new(0, 500, 0, 220)
+logFrame.Position = UDim2.new(0.5, -250, 0.35, 0)
 logFrame.BackgroundColor3 = C_PANEL
 logFrame.BackgroundTransparency = 0.2
 logFrame.BorderSizePixel = 0
@@ -428,10 +557,10 @@ logStroke.Color = C_CYAN
 logStroke.Transparency = 0.3
 logStroke.Parent = logFrame
 
-addCorners(logFrame, C_CYAN, 14, 22)
+addCorners(logFrame, C_CYAN, 12, 22)
 
 local logHeader = Instance.new("Frame")
-logHeader.Size = UDim2.new(1, 0, 0, 24)
+logHeader.Size = UDim2.new(1, 0, 0, 20)
 logHeader.BackgroundColor3 = C_CYAN
 logHeader.BackgroundTransparency = 0.85
 logHeader.BorderSizePixel = 0
@@ -444,27 +573,27 @@ logHeaderLbl.Position = UDim2.new(0, 10, 0, 0)
 logHeaderLbl.BackgroundTransparency = 1
 logHeaderLbl.Text = "▸ SYSTEM_LOADER.SYS  [/proc/sys]"
 logHeaderLbl.TextColor3 = C_CYAN
-logHeaderLbl.TextSize = 12
+logHeaderLbl.TextSize = 10
 logHeaderLbl.Font = Enum.Font.Code
 logHeaderLbl.TextXAlignment = Enum.TextXAlignment.Left
 logHeaderLbl.ZIndex = 23
 logHeaderLbl.Parent = logHeader
 
 local logContainer = Instance.new("Frame")
-logContainer.Size = UDim2.new(1, -20, 1, -34)
-logContainer.Position = UDim2.new(0, 10, 0, 30)
+logContainer.Size = UDim2.new(1, -20, 1, -30)
+logContainer.Position = UDim2.new(0, 10, 0, 26)
 logContainer.BackgroundTransparency = 1
 logContainer.ZIndex = 22
 logContainer.Parent = logFrame
 
 local logLayout = Instance.new("UIListLayout")
-logLayout.Padding = UDim.new(0, 4)
+logLayout.Padding = UDim.new(0, 3)
 logLayout.SortOrder = Enum.SortOrder.LayoutOrder
 logLayout.Parent = logContainer
 
 local barFrame = Instance.new("Frame")
-barFrame.Size = UDim2.new(0, 600, 0, 44)
-barFrame.Position = UDim2.new(0.5, -300, 0.77, 0)
+barFrame.Size = UDim2.new(0, 500, 0, 40)
+barFrame.Position = UDim2.new(0.5, -250, 0.77, 0)
 barFrame.BackgroundColor3 = C_PANEL
 barFrame.BackgroundTransparency = 0.3
 barFrame.BorderSizePixel = 0
@@ -478,21 +607,9 @@ barStroke.Color = C_CYAN
 barStroke.Transparency = 0.3
 barStroke.Parent = barFrame
 
-local barLabel = Instance.new("TextLabel")
-barLabel.Size = UDim2.new(1, -20, 0, 14)
-barLabel.Position = UDim2.new(0, 10, 0, 3)
-barLabel.BackgroundTransparency = 1
-barLabel.Text = "▸ PROGRESS"
-barLabel.TextColor3 = C_CYAN
-barLabel.TextSize = 10
-barLabel.Font = Enum.Font.Code
-barLabel.TextXAlignment = Enum.TextXAlignment.Left
-barLabel.ZIndex = 22
-barLabel.Parent = barFrame
-
 local barBg = Instance.new("Frame")
-barBg.Size = UDim2.new(1, -20, 0, 14)
-barBg.Position = UDim2.new(0, 10, 0, 24)
+barBg.Size = UDim2.new(1, -20, 0, 12)
+barBg.Position = UDim2.new(0, 10, 0, 22)
 barBg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 barBg.BorderSizePixel = 0
 barBg.ZIndex = 22
@@ -514,12 +631,12 @@ for i = 1, SEGMENTS do
 end
 
 local percentLbl = Instance.new("TextLabel")
-percentLbl.Size = UDim2.new(0, 120, 0, 14)
-percentLbl.Position = UDim2.new(1, -130, 0, 3)
+percentLbl.Size = UDim2.new(0, 100, 0, 12)
+percentLbl.Position = UDim2.new(1, -110, 0, 3)
 percentLbl.BackgroundTransparency = 1
 percentLbl.Text = "0.000%"
 percentLbl.TextColor3 = C_CYAN
-percentLbl.TextSize = 12
+percentLbl.TextSize = 11
 percentLbl.Font = Enum.Font.Code
 percentLbl.TextXAlignment = Enum.TextXAlignment.Right
 percentLbl.ZIndex = 22
@@ -532,47 +649,47 @@ local logIndex = 0
 local function addLog(prefix, text, color)
     logIndex = logIndex + 1
     local container = Instance.new("Frame")
-    container.Size = UDim2.new(1, 0, 0, 18)
+    container.Size = UDim2.new(1, 0, 0, 16)
     container.BackgroundTransparency = 1
     container.ZIndex = 22
     container.Parent = logContainer
 
     local num = Instance.new("TextLabel")
-    num.Size = UDim2.new(0, 30, 1, 0)
+    num.Size = UDim2.new(0, 26, 1, 0)
     num.BackgroundTransparency = 1
     num.Text = string.format("%02d", logIndex)
     num.TextColor3 = Color3.fromRGB(80, 80, 120)
-    num.TextSize = 11
+    num.TextSize = 10
     num.Font = Enum.Font.Code
     num.TextXAlignment = Enum.TextXAlignment.Left
     num.ZIndex = 23
     num.Parent = container
 
     local prefixLbl = Instance.new("TextLabel")
-    prefixLbl.Size = UDim2.new(0, 40, 1, 0)
-    prefixLbl.Position = UDim2.new(0, 32, 0, 0)
+    prefixLbl.Size = UDim2.new(0, 36, 1, 0)
+    prefixLbl.Position = UDim2.new(0, 28, 0, 0)
     prefixLbl.BackgroundTransparency = 1
     prefixLbl.Text = prefix
     prefixLbl.TextColor3 = color or C_CYAN
-    prefixLbl.TextSize = 11
+    prefixLbl.TextSize = 10
     prefixLbl.Font = Enum.Font.Code
     prefixLbl.TextXAlignment = Enum.TextXAlignment.Left
     prefixLbl.ZIndex = 23
     prefixLbl.Parent = container
 
     local txtLbl = Instance.new("TextLabel")
-    txtLbl.Size = UDim2.new(1, -80, 1, 0)
-    txtLbl.Position = UDim2.new(0, 76, 0, 0)
+    txtLbl.Size = UDim2.new(1, -70, 1, 0)
+    txtLbl.Position = UDim2.new(0, 66, 0, 0)
     txtLbl.BackgroundTransparency = 1
     txtLbl.Text = text
     txtLbl.TextColor3 = C_CYAN
-    txtLbl.TextSize = 12
+    txtLbl.TextSize = 11
     txtLbl.Font = Enum.Font.Code
     txtLbl.TextXAlignment = Enum.TextXAlignment.Left
     txtLbl.ZIndex = 23
     txtLbl.Parent = container
 
-    return {container = container, txt = txtLbl, prefix = prefixLbl}
+    return {container = container, txt = txtLbl}
 end
 
 local function updateProgress(pct)
@@ -590,7 +707,7 @@ local function updateProgress(pct)
 end
 
 ------------------------------------------------------------
--- ★ テレポート機能
+-- TP機能
 ------------------------------------------------------------
 local function teleportToPlayer(targetPlayer)
     local myChar = plr.Character
@@ -603,15 +720,13 @@ local function teleportToPlayer(targetPlayer)
     local targetHrp = targetChar:FindFirstChild("HumanoidRootPart")
     if not targetHrp then return end
 
-    -- 対象の3スタッド後ろに出現
     local offset = -targetHrp.CFrame.LookVector * 3
     local newCF = targetHrp.CFrame + offset + Vector3.new(0, 1, 0)
-
     myHrp.CFrame = newCF
 end
 
 ------------------------------------------------------------
--- プレイヤー選択GUI（小型）
+-- プレイヤー選択GUI
 ------------------------------------------------------------
 local selectGui
 local scrollFrameRef
@@ -622,7 +737,8 @@ local function buildPlayerSelectGui()
     selectGui.ResetOnSpawn = false
     selectGui.IgnoreGuiInset = true
     selectGui.DisplayOrder = 600
-    selectGui.Parent = PlayerGui
+    selectGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    selectGui.Parent = guiParent
 
     local panel = Instance.new("Frame")
     panel.Size = UDim2.new(0, 150, 0, 220)
@@ -667,7 +783,7 @@ local function buildPlayerSelectGui()
     scrollFrame.Position = UDim2.new(0, 4, 0, 22)
     scrollFrame.BackgroundTransparency = 1
     scrollFrame.BorderSizePixel = 0
-    scrollFrame.ScrollBarThickness = 2
+    scrollFrame.ScrollBarThickness = 3
     scrollFrame.ScrollBarImageColor3 = C_CYAN
     scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     scrollFrame.ZIndex = 11
@@ -692,7 +808,7 @@ local function makePlayerButton(targetPlayer)
 
     local btn = Instance.new("Frame")
     btn.Name = "PlayerBtn_" .. targetPlayer.Name
-    btn.Size = UDim2.new(1, -4, 0, 20)
+    btn.Size = UDim2.new(1, -4, 0, 22)
     btn.BackgroundColor3 = Color3.fromRGB(15, 20, 35)
     btn.BackgroundTransparency = 0.2
     btn.BorderSizePixel = 0
@@ -706,7 +822,6 @@ local function makePlayerButton(targetPlayer)
     stroke.Transparency = 0.5
     stroke.Parent = btn
 
-    -- 選択ドット
     local statusDot = Instance.new("Frame")
     statusDot.Size = UDim2.new(0, 5, 0, 5)
     statusDot.Position = UDim2.new(0, 6, 0.5, -2.5)
@@ -716,7 +831,6 @@ local function makePlayerButton(targetPlayer)
     statusDot.Parent = btn
     Instance.new("UICorner", statusDot).CornerRadius = UDim.new(1, 0)
 
-    -- 名前
     local nameLbl = Instance.new("TextLabel")
     nameLbl.Size = UDim2.new(1, -50, 1, 0)
     nameLbl.Position = UDim2.new(0, 16, 0, 0)
@@ -730,15 +844,15 @@ local function makePlayerButton(targetPlayer)
     nameLbl.ZIndex = 12
     nameLbl.Parent = btn
 
-    -- ★ TPボタン
+    -- TPボタン
     local tpBtn = Instance.new("TextButton")
-    tpBtn.Size = UDim2.new(0, 26, 0, 16)
-    tpBtn.Position = UDim2.new(1, -30, 0.5, -8)
+    tpBtn.Size = UDim2.new(0, 26, 0, 18)
+    tpBtn.Position = UDim2.new(1, -30, 0.5, -9)
     tpBtn.BackgroundColor3 = Color3.fromRGB(30, 50, 80)
     tpBtn.BackgroundTransparency = 0.2
     tpBtn.Text = "TP"
     tpBtn.TextColor3 = C_CYAN
-    tpBtn.TextSize = 9
+    tpBtn.TextSize = 10
     tpBtn.Font = Enum.Font.Code
     tpBtn.BorderSizePixel = 0
     tpBtn.ZIndex = 14
@@ -751,7 +865,7 @@ local function makePlayerButton(targetPlayer)
     tpStroke.Transparency = 0.4
     tpStroke.Parent = tpBtn
 
-    tpBtn.MouseButton1Click:Connect(function()
+    bindClick(tpBtn, function()
         teleportToPlayer(targetPlayer)
         tpBtn.TextColor3 = C_GREEN
         tpStroke.Color = C_GREEN
@@ -762,7 +876,7 @@ local function makePlayerButton(targetPlayer)
         end
     end)
 
-    -- 選択用クリック（TPボタン以外）
+    -- 選択ボタン
     local clickBtn = Instance.new("TextButton")
     clickBtn.Size = UDim2.new(1, -30, 1, 0)
     clickBtn.BackgroundTransparency = 1
@@ -770,7 +884,7 @@ local function makePlayerButton(targetPlayer)
     clickBtn.ZIndex = 13
     clickBtn.Parent = btn
 
-    clickBtn.MouseButton1Click:Connect(function()
+    bindClick(clickBtn, function()
         selectedPlayers[targetPlayer] = not selectedPlayers[targetPlayer]
 
         if selectedPlayers[targetPlayer] then
@@ -890,7 +1004,6 @@ local function createESP(targetPlayer)
             billboard = bb,
             distLbl = distLbl,
             hpFill = hpFill,
-            nameLbl = nameLbl,
         }
     else
         espData[targetPlayer] = { highlight = highlight }
@@ -926,7 +1039,6 @@ local function createESP(targetPlayer)
 
         if data.distLbl then
             data.distLbl.Text = string.format("DIST: %.1fm", dist)
-
             if dist < 30 then
                 data.distLbl.TextColor3 = C_RED
                 if data.highlight then
@@ -1013,7 +1125,7 @@ local function startESP()
 end
 
 ------------------------------------------------------------
--- 認証処理
+-- 認証
 ------------------------------------------------------------
 local function runLoadSequence()
     keyScreen.Visible = false
@@ -1028,13 +1140,13 @@ local function runLoadSequence()
     task.wait(0.4)
 
     local steps = {
-        {prefix = "[SYS]", text = "Booting system...", color = C_CYAN, time = 1.0, pct = 12},
-        {prefix = "[NET]", text = "Checking connection...", color = C_CYAN, time = 1.2, pct = 28},
-        {prefix = "[ADR]", text = "Verifying address...", color = C_CYAN, time = 1.3, pct = 45},
-        {prefix = "[IDN]", text = "Authenticating identity...", color = C_PURPLE, time = 1.4, pct = 62},
-        {prefix = "[SCN]", text = "Scanning player network...", color = C_PURPLE, time = 1.3, pct = 78},
-        {prefix = "[PRG]", text = "Compiling target list...", color = C_PINK, time = 1.2, pct = 92},
-        {prefix = "[OK ]", text = "System ready.", color = C_GREEN, time = 1.0, pct = 100},
+        {prefix = "[SYS]", text = "Booting system...", color = C_CYAN, time = 0.8, pct = 14},
+        {prefix = "[NET]", text = "Checking connection...", color = C_CYAN, time = 0.9, pct = 30},
+        {prefix = "[ADR]", text = "Verifying address...", color = C_CYAN, time = 1.0, pct = 46},
+        {prefix = "[IDN]", text = "Authenticating identity...", color = C_PURPLE, time = 1.1, pct = 62},
+        {prefix = "[SCN]", text = "Scanning player network...", color = C_PURPLE, time = 1.0, pct = 78},
+        {prefix = "[PRG]", text = "Compiling target list...", color = C_PINK, time = 0.9, pct = 92},
+        {prefix = "[OK ]", text = "System ready.", color = C_GREEN, time = 0.8, pct = 100},
     }
 
     for _, step in ipairs(steps) do
@@ -1047,7 +1159,7 @@ local function runLoadSequence()
 
     loadTitle.Text = "◢ COMPLETE ◣"
     loadTitle.TextColor3 = C_GREEN
-    task.wait(1)
+    task.wait(0.8)
 end
 
 local function onAuthSuccess()
@@ -1070,7 +1182,6 @@ local function onAuthSuccess()
 
     title.Text = "◢ ACCESS GRANTED ◣"
     title.TextColor3 = C_GREEN
-    titleGlow.TextColor3 = C_GREEN
 
     task.wait(1.5)
 
@@ -1089,20 +1200,22 @@ local function onAuthSuccess()
         bg:Destroy()
         gridContainer:Destroy()
 
+        -- 走査線も削除（Performance/FOVパネルは残す）
         for _, child in ipairs(gui:GetChildren()) do
-            if child:IsA("Frame") and child.Name ~= "PerformancePanel" then
+            if child:IsA("Frame") and child.Name ~= "PerformancePanel" and child.Name ~= "FovPanel" then
                 if child.BackgroundTransparency == 0.92 then
                     child:Destroy()
                 end
             end
         end
 
+        -- 走査線とビネットだけのオーバーレイ
         local overlay = Instance.new("ScreenGui")
         overlay.Name = "ProgramOverlay"
         overlay.ResetOnSpawn = false
         overlay.IgnoreGuiInset = true
         overlay.DisplayOrder = 500
-        overlay.Parent = PlayerGui
+        overlay.Parent = guiParent
 
         task.spawn(function()
             task.wait(0.1)
@@ -1182,8 +1295,8 @@ local function verify()
         task.delay(0.5, function() if flash and flash.Parent then flash:Destroy() end end)
 
         local basePos = inputPanel.Position
-        for i = 1, 10 do
-            inputPanel.Position = basePos + UDim2.new(math.random(-12, 12) / 1000, 0, 0, 0)
+        for i = 1, 8 do
+            inputPanel.Position = basePos + UDim2.new(math.random(-10, 10) / 1000, 0, 0, 0)
             task.wait(0.03)
         end
         inputPanel.Position = basePos
@@ -1193,7 +1306,7 @@ local function verify()
     end
 end
 
-verifyBtn.MouseButton1Click:Connect(verify)
+bindClick(verifyBtn, verify)
 keyBox.FocusLost:Connect(function(enterPressed)
     if enterPressed then verify() end
 end)
